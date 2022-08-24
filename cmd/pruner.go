@@ -62,10 +62,18 @@ func pruneCmd() *cobra.Command {
 
 			}
 
+			if tx_idx {
+
+			}
+
 			return errs.Wait()
 		},
 	}
 	return cmd
+}
+
+func pruneTxIndex(home string) error {
+
 }
 
 func pruneAppState(home string) error {
@@ -581,6 +589,7 @@ func pruneAppState(home string) error {
 	if dbType == db.GoLevelDBBackend {
 		fmt.Println("compacting application state")
 		levelAppDB := appDB.(*db.GoLevelDB)
+
 		if err := levelAppDB.ForceCompact(nil, nil); err != nil {
 			return err
 		}
