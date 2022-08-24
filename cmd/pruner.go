@@ -86,6 +86,7 @@ func int64FromBytes(bz []byte) int64 {
 }
 
 func pruneTxIndex(home string) error {
+	fmt.Println("pruning tx_index")
 	dbType := db.BackendType(backend)
 	dbDir := rootify(dataDir, home)
 
@@ -134,10 +135,14 @@ func pruneTxIndex(home string) error {
 		fmt.Printf("intHeight: %d\n", intHeight)
 
 		if intHeight < pruneHeight {
-			txIdxDB.Delete(key)
+			err := txIdxDB.Delete(key)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
+	fmt.Println("finished pruning tx_index")
 	return nil
 }
 
