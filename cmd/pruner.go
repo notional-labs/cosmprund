@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"path/filepath"
 
@@ -29,6 +30,9 @@ import (
 
 	"github.com/binaryholdings/cosmos-pruner/internal/rootmulti"
 )
+
+// to figuring out the height to prune tx_index
+var txIdxHeight int64 = 0
 
 // load db
 // load app store and prune
@@ -63,7 +67,11 @@ func pruneCmd() *cobra.Command {
 			}
 
 			if tx_idx {
-
+				err = pruneTxIndex(args[0])
+				if err != nil {
+					return err
+				}
+				return nil
 			}
 
 			return errs.Wait()
@@ -72,8 +80,65 @@ func pruneCmd() *cobra.Command {
 	return cmd
 }
 
-func pruneTxIndex(home string) error {
+func int64FromBytes(bz []byte) int64 {
+	v, _ := binary.Varint(bz)
+	return v
+}
 
+func pruneTxIndex(home string) error {
+	dbType := db.BackendType(backend)
+	dbDir := rootify(dataDir, home)
+
+	// Get application
+	var txIdxDB db.DB
+	if dbType == db.GoLevelDBBackend {
+		o := opt.Options{
+			DisableSeeksCompaction: true,
+		}
+
+		levelTxIdxDB, err := db.NewGoLevelDBWithOpts("tx_index", dbDir, &o)
+		if err != nil {
+			return err
+		}
+
+		txIdxDB = levelTxIdxDB
+	} else {
+		var err error
+		txIdxDB, err = db.NewDB("tx_index", dbType, dbDir)
+		if err != nil {
+			return err
+		}
+	}
+
+	defer txIdxDB.Close()
+
+	pruneHeight := txIdxHeight - int64(blocks) - 10
+
+	if pruneHeight <= 0 {
+		fmt.Printf("No need to prune (pruneHeight=%d)\n", pruneHeight)
+		return nil
+	}
+
+	itr, itrErr := txIdxDB.Iterator(nil, nil)
+	defer itr.Close()
+
+	if itrErr != nil {
+		panic(itrErr)
+	}
+
+	for ; itr.Valid(); itr.Next() {
+		key := itr.Key()
+		value := itr.Value()
+
+		intHeight := int64FromBytes(value)
+		fmt.Printf("intHeight: %d\n", intHeight)
+
+		if intHeight < pruneHeight {
+			txIdxDB.Delete(key)
+		}
+	}
+
+	return nil
 }
 
 func pruneAppState(home string) error {
@@ -564,6 +629,10 @@ func pruneAppState(home string) error {
 	// TODO: cleanup app state
 	appStore := rootmulti.NewStore(appDB)
 
+	if txIdxHeight <= 0 {
+		txIdxHeight = appStore.LastCommitID().Version
+	}
+
 	for _, value := range keys {
 		appStore.MountStoreWithDB(value, sdk.StoreTypeIAVL, nil)
 	}
@@ -654,6 +723,10 @@ func pruneTMData(home string) error {
 	base := blockStore.Base()
 
 	pruneHeight := blockStore.Height() - int64(blocks)
+
+	if txIdxHeight <= 0 {
+		txIdxHeight = blockStore.Height()
+	}
 
 	errs, _ := errgroup.WithContext(context.Background())
 	errs.Go(func() error {

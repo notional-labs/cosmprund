@@ -38,7 +38,7 @@ Flags:
 - `app`: the application you want to prune, outside the sdk default modules. See `Supported Apps`
 - `cosmos-sdk`: If pruning a non cosmos-sdk chain, like Nomic, you only want to use tendermint pruning or if you want to only prune tendermint block & state as this is generally large on machines(Default true)
 - `tendermint`: If the user wants to only prune application data they can disable pruning of tendermint data. (Default true)
-
+- `tx_index`: set to false you dont want to prune tx_index.db (default true)
 
 #### Supported Apps:
 - osmosis: Osmosis
