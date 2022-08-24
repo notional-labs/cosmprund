@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 
@@ -95,6 +94,8 @@ func pruneAppState(home string) error {
 			return err
 		}
 	}
+
+	defer appDB.Close()
 
 	var err error
 
@@ -618,6 +619,7 @@ func pruneTMData(home string) error {
 	}
 
 	blockStore := tmstore.NewBlockStore(blockStoreDB)
+	defer blockStore.Close()
 
 	// Get StateStore
 	var stateDB db.DB
@@ -641,30 +643,31 @@ func pruneTMData(home string) error {
 	var err error
 
 	stateStore := state.NewStore(stateDB)
+	defer stateStore.Close()
 
 	base := blockStore.Base()
 
 	pruneHeight := blockStore.Height() - int64(blocks)
 
-	errs, _ := errgroup.WithContext(context.Background())
-	errs.Go(func() error {
-		fmt.Println("pruning block store")
-		// prune block store
-		blocks, err = blockStore.PruneBlocks(pruneHeight)
-		if err != nil {
+	//errs, _ := errgroup.WithContext(context.Background())
+	//errs.Go(func() error {
+	fmt.Println("pruning block store")
+	// prune block store
+	blocks, err = blockStore.PruneBlocks(pruneHeight)
+	if err != nil {
+		return err
+	}
+
+	if dbType == db.GoLevelDBBackend {
+		fmt.Println("compacting block store")
+		leveldbBlock := blockStoreDB.(*db.GoLevelDB)
+		if err := leveldbBlock.ForceCompact(nil, nil); err != nil {
 			return err
 		}
+	}
 
-		if dbType == db.GoLevelDBBackend {
-			fmt.Println("compacting block store")
-			leveldbBlock := blockStoreDB.(*db.GoLevelDB)
-			if err := leveldbBlock.ForceCompact(nil, nil); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
+	//return nil
+	//})
 
 	fmt.Println("pruning state store")
 	// prune state store
