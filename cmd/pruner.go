@@ -668,7 +668,8 @@ func pruneAppState(home string) error {
 		levelAppDB := appDB.(*db.GoLevelDB)
 
 		if err := levelAppDB.ForceCompact(nil, nil); err != nil {
-			return err
+			//return err
+			fmt.Println(err.Error())
 		}
 	}
 
@@ -733,7 +734,7 @@ func pruneTMData(home string) error {
 	base := blockStore.Base()
 
 	pruneHeight := blockStore.Height() - int64(blocks)
-	fmt.Printf("\tpruneHeight=%d", pruneHeight)
+	fmt.Printf("\tpruneHeight=%d\n", pruneHeight)
 
 	if txIdxHeight <= 0 {
 		txIdxHeight = blockStore.Height()
@@ -745,14 +746,16 @@ func pruneTMData(home string) error {
 	// prune block store
 	blocks, err = blockStore.PruneBlocks(pruneHeight)
 	if err != nil {
-		return err
+		//return err
+		fmt.Println(err.Error())
 	}
 
 	if dbType == db.GoLevelDBBackend {
 		fmt.Println("compacting block store")
 		leveldbBlock := blockStoreDB.(*db.GoLevelDB)
 		if err := leveldbBlock.ForceCompact(nil, nil); err != nil {
-			return err
+			//return err
+			fmt.Println(err.Error())
 		}
 	}
 
