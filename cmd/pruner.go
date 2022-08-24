@@ -51,7 +51,8 @@ func pruneCmd() *cobra.Command {
 			if tendermint {
 				//errs.Go(func() error {
 				if err = pruneTMData(args[0]); err != nil {
-					return err
+					fmt.Println(err.Error())
+					//return err
 				}
 				//	return nil
 				//})
@@ -60,7 +61,8 @@ func pruneCmd() *cobra.Command {
 			if cosmosSdk {
 				err = pruneAppState(args[0])
 				if err != nil {
-					return err
+					//return err
+					fmt.Println(err.Error())
 				}
 				//return nil
 
@@ -69,7 +71,8 @@ func pruneCmd() *cobra.Command {
 			if tx_idx {
 				err = pruneTxIndex(args[0])
 				if err != nil {
-					return err
+					//return err
+					fmt.Println(err.Error())
 				}
 				//return nil
 			}
@@ -93,6 +96,8 @@ func pruneTxIndex(home string) error {
 
 	// Get application
 	var txIdxDB db.DB
+	defer txIdxDB.Close()
+
 	if dbType == db.GoLevelDBBackend {
 		o := opt.Options{
 			DisableSeeksCompaction: true,
@@ -112,8 +117,6 @@ func pruneTxIndex(home string) error {
 		}
 	}
 
-	defer txIdxDB.Close()
-
 	pruneHeight := txIdxHeight - int64(blocks) - 10
 
 	if pruneHeight <= 0 {
@@ -125,7 +128,7 @@ func pruneTxIndex(home string) error {
 	defer itr.Close()
 
 	if itrErr != nil {
-		panic(itrErr)
+		return (itrErr)
 	}
 
 	for ; itr.Valid(); itr.Next() {
@@ -138,7 +141,7 @@ func pruneTxIndex(home string) error {
 		if intHeight < pruneHeight {
 			err := txIdxDB.Delete(key)
 			if err != nil {
-				panic(err)
+				fmt.Println(err.Error())
 			}
 		}
 	}
