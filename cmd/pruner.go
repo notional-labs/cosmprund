@@ -21,7 +21,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	"github.com/neilotoole/errgroup"
+	//"github.com/neilotoole/errgroup"
 	"github.com/spf13/cobra"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/tendermint/tendermint/state"
@@ -45,16 +45,16 @@ func pruneCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			ctx := cmd.Context()
-			errs, _ := errgroup.WithContext(ctx)
+			//ctx := cmd.Context()
+			//errs, _ := errgroup.WithContext(ctx)
 			var err error
 			if tendermint {
-				errs.Go(func() error {
-					if err = pruneTMData(args[0]); err != nil {
-						return err
-					}
-					return nil
-				})
+				//errs.Go(func() error {
+				if err = pruneTMData(args[0]); err != nil {
+					return err
+				}
+				//	return nil
+				//})
 			}
 
 			if cosmosSdk {
@@ -62,7 +62,7 @@ func pruneCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				return nil
+				//return nil
 
 			}
 
@@ -71,10 +71,11 @@ func pruneCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				return nil
+				//return nil
 			}
 
-			return errs.Wait()
+			//return errs.Wait()
+			return nil
 		},
 	}
 	return cmd
