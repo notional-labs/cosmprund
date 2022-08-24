@@ -733,6 +733,7 @@ func pruneTMData(home string) error {
 	base := blockStore.Base()
 
 	pruneHeight := blockStore.Height() - int64(blocks)
+	fmt.Printf("\tpruneHeight=%d", pruneHeight)
 
 	if txIdxHeight <= 0 {
 		txIdxHeight = blockStore.Height()
