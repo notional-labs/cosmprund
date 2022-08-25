@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -84,11 +86,6 @@ func pruneCmd() *cobra.Command {
 	return cmd
 }
 
-func int64FromBytes(bz []byte) int64 {
-	v, _ := binary.Varint(bz)
-	return v
-}
-
 func pruneTxIndex(home string) error {
 	fmt.Println("pruning tx_index")
 	dbType := db.BackendType(backend)
@@ -127,30 +124,74 @@ func pruneTxIndex(home string) error {
 		return nil
 	}
 
-	itr, itrErr := txIdxDB.Iterator(nil, nil)
+	pruneBlockIndex(txIdxDB, pruneHeight)
+	pruneTxIndexTxs(txIdxDB, pruneHeight)
+
+	fmt.Println("finished pruning tx_index")
+	return nil
+}
+
+func pruneTxIndexTxs(db tmdb.DB, pruneHeight int64) {
+	itr, itrErr := db.Iterator(nil, nil)
+	if itrErr != nil {
+		panic(itrErr)
+	}
+
 	defer itr.Close()
 
-	if itrErr != nil {
-		return (itrErr)
+	///////////////////////////////////////////////////
+	// delete index by hash and index by height
+	for ; itr.Valid(); itr.Next() {
+		key := itr.Key()
+		value := itr.Value()
+
+		strKey := string(key)
+
+		if strings.HasPrefix(strKey, "tx.height") { // index by height
+			strs := strings.Split(strKey, "/")
+			intHeight, _ := strconv.Atoi(strs[2])
+
+			if intHeight < 88840 {
+				db.Delete(value)
+				db.Delete(key)
+			}
+		} else {
+			if len(value) == 32 { // maybe index tx by events
+				strs := strings.Split(strKey, "/")
+				if len(strs) == 4 { // index tx by events
+					intHeight, _ := strconv.Atoi(strs[2])
+					if intHeight < 88840 {
+						db.Delete(key)
+					}
+				}
+			}
+		}
 	}
+}
+
+func pruneBlockIndex(db tmdb.DB, pruneHeight int64) {
+	itr, itrErr := db.Iterator(nil, nil)
+	if itrErr != nil {
+		panic(itrErr)
+	}
+
+	defer itr.Close()
 
 	for ; itr.Valid(); itr.Next() {
 		key := itr.Key()
 		value := itr.Value()
 
-		intHeight := int64FromBytes(value)
-		fmt.Printf("intHeight: %d\n", intHeight)
+		strKey := string(key)
 
-		if intHeight < pruneHeight {
-			err := txIdxDB.Delete(key)
-			if err != nil {
-				fmt.Println(err.Error())
+		if strings.HasPrefix(strKey, "block.height") /* index block primary key*/ || strings.HasPrefix(strKey, "block_events") /* BeginBlock & EndBlock */ {
+			intHeight := int64FromBytes(value)
+			//fmt.Printf("intHeight: %d\n", intHeight)
+
+			if intHeight < 88840 {
+				db.Delete(key)
 			}
 		}
 	}
-
-	fmt.Println("finished pruning tx_index")
-	return nil
 }
 
 func pruneAppState(home string) error {
@@ -793,4 +834,9 @@ func rootify(path, root string) string {
 		return path
 	}
 	return filepath.Join(root, path)
+}
+
+func int64FromBytes(bz []byte) int64 {
+	v, _ := binary.Varint(bz)
+	return v
 }
