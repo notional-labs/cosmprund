@@ -708,6 +708,7 @@ func pruneAppState(home string) error {
 
 	if len(v64)-10 < 0 {
 		fmt.Printf("[pruneAppState] No need to prune (%d)\n", len(v64)-10)
+		return nil
 	}
 
 	appStore.PruneHeights = v64[:len(v64)-10]
