@@ -131,7 +131,7 @@ func pruneTxIndex(home string) error {
 	return nil
 }
 
-func pruneTxIndexTxs(db tmdb.DB, pruneHeight int64) {
+func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 	itr, itrErr := db.Iterator(nil, nil)
 	if itrErr != nil {
 		panic(itrErr)
@@ -169,7 +169,7 @@ func pruneTxIndexTxs(db tmdb.DB, pruneHeight int64) {
 	}
 }
 
-func pruneBlockIndex(db tmdb.DB, pruneHeight int64) {
+func pruneBlockIndex(db db.DB, pruneHeight int64) {
 	itr, itrErr := db.Iterator(nil, nil)
 	if itrErr != nil {
 		panic(itrErr)
