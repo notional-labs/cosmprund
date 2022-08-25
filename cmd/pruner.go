@@ -706,6 +706,10 @@ func pruneAppState(home string) error {
 
 	fmt.Println(len(v64))
 
+	if len(v64)-10 < 0 {
+		fmt.Printf("[pruneAppState] No need to prune (%d)\n", len(v64)-10)
+	}
+
 	appStore.PruneHeights = v64[:len(v64)-10]
 
 	appStore.PruneStores()
@@ -781,7 +785,7 @@ func pruneTMData(home string) error {
 	base := blockStore.Base()
 
 	pruneHeight := blockStore.Height() - int64(blocks)
-	fmt.Printf("\tpruneHeight=%d\n", pruneHeight)
+	fmt.Printf("[pruneTMData] pruneHeight=%d\n", pruneHeight)
 
 	if txIdxHeight <= 0 {
 		txIdxHeight = blockStore.Height()
