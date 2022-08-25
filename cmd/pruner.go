@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	//"context"
+	"encoding/binary"
 	"fmt"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,7 +23,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	"github.com/neilotoole/errgroup"
+	//"github.com/neilotoole/errgroup"
 	"github.com/spf13/cobra"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/tendermint/tendermint/state"
@@ -28,6 +32,9 @@ import (
 
 	"github.com/binaryholdings/cosmos-pruner/internal/rootmulti"
 )
+
+// to figuring out the height to prune tx_index
+var txIdxHeight int64 = 0
 
 // load db
 // load app store and prune
@@ -40,31 +47,153 @@ func pruneCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			ctx := cmd.Context()
-			errs, _ := errgroup.WithContext(ctx)
+			//ctx := cmd.Context()
+			//errs, _ := errgroup.WithContext(ctx)
 			var err error
 			if tendermint {
-				errs.Go(func() error {
-					if err = pruneTMData(args[0]); err != nil {
-						return err
-					}
-					return nil
-				})
+				//errs.Go(func() error {
+				if err = pruneTMData(args[0]); err != nil {
+					fmt.Println(err.Error())
+					//return err
+				}
+				//	return nil
+				//})
 			}
 
 			if cosmosSdk {
 				err = pruneAppState(args[0])
 				if err != nil {
-					return err
+					//return err
+					fmt.Println(err.Error())
 				}
-				return nil
+				//return nil
 
 			}
 
-			return errs.Wait()
+			if tx_idx {
+				err = pruneTxIndex(args[0])
+				if err != nil {
+					//return err
+					fmt.Println(err.Error())
+				}
+				//return nil
+			}
+
+			//return errs.Wait()
+			return nil
 		},
 	}
 	return cmd
+}
+
+func pruneTxIndex(home string) error {
+	fmt.Println("pruning tx_index")
+	dbType := db.BackendType(backend)
+	dbDir := rootify(dataDir, home)
+
+	// Get application
+	var txIdxDB db.DB
+	defer func() {
+		errClose := txIdxDB.Close()
+		if errClose != nil {
+			fmt.Println(errClose.Error())
+		}
+	}()
+
+	if dbType == db.GoLevelDBBackend {
+		o := opt.Options{
+			DisableSeeksCompaction: true,
+		}
+
+		levelTxIdxDB, err := db.NewGoLevelDBWithOpts("tx_index", dbDir, &o)
+		if err != nil {
+			return err
+		}
+
+		txIdxDB = levelTxIdxDB
+	} else {
+		var err error
+		txIdxDB, err = db.NewDB("tx_index", dbType, dbDir)
+		if err != nil {
+			return err
+		}
+	}
+
+	pruneHeight := txIdxHeight - int64(blocks) - 10
+
+	if pruneHeight <= 0 {
+		fmt.Printf("No need to prune (pruneHeight=%d)\n", pruneHeight)
+		return nil
+	}
+
+	pruneBlockIndex(txIdxDB, pruneHeight)
+	pruneTxIndexTxs(txIdxDB, pruneHeight)
+
+	fmt.Println("finished pruning tx_index")
+	return nil
+}
+
+func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
+	itr, itrErr := db.Iterator(nil, nil)
+	if itrErr != nil {
+		panic(itrErr)
+	}
+
+	defer itr.Close()
+
+	///////////////////////////////////////////////////
+	// delete index by hash and index by height
+	for ; itr.Valid(); itr.Next() {
+		key := itr.Key()
+		value := itr.Value()
+
+		strKey := string(key)
+
+		if strings.HasPrefix(strKey, "tx.height") { // index by height
+			strs := strings.Split(strKey, "/")
+			intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
+
+			if intHeight < pruneHeight {
+				db.Delete(value)
+				db.Delete(key)
+			}
+		} else {
+			if len(value) == 32 { // maybe index tx by events
+				strs := strings.Split(strKey, "/")
+				if len(strs) == 4 { // index tx by events
+					intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
+					if intHeight < pruneHeight {
+						db.Delete(key)
+					}
+				}
+			}
+		}
+	}
+}
+
+func pruneBlockIndex(db db.DB, pruneHeight int64) {
+	itr, itrErr := db.Iterator(nil, nil)
+	if itrErr != nil {
+		panic(itrErr)
+	}
+
+	defer itr.Close()
+
+	for ; itr.Valid(); itr.Next() {
+		key := itr.Key()
+		value := itr.Value()
+
+		strKey := string(key)
+
+		if strings.HasPrefix(strKey, "block.height") /* index block primary key*/ || strings.HasPrefix(strKey, "block_events") /* BeginBlock & EndBlock */ {
+			intHeight := int64FromBytes(value)
+			//fmt.Printf("intHeight: %d\n", intHeight)
+
+			if intHeight < pruneHeight {
+				db.Delete(key)
+			}
+		}
+	}
 }
 
 func pruneAppState(home string) error {
@@ -557,6 +686,11 @@ func pruneAppState(home string) error {
 	// TODO: cleanup app state
 	appStore := rootmulti.NewStore(appDB)
 
+	if txIdxHeight <= 0 {
+		txIdxHeight = appStore.LastCommitID().Version
+		fmt.Printf("[pruneAppState] set txIdxHeight=%d\n", txIdxHeight)
+	}
+
 	for _, value := range keys {
 		appStore.MountStoreWithDB(value, sdk.StoreTypeIAVL, nil)
 	}
@@ -566,24 +700,31 @@ func pruneAppState(home string) error {
 		return err
 	}
 
-	versions := appStore.GetAllVersions()
+	allVersions := appStore.GetAllVersions()
 
-	v64 := make([]int64, len(versions))
-	for i := 0; i < len(versions); i++ {
-		v64[i] = int64(versions[i])
+	v64 := make([]int64, len(allVersions))
+	for i := 0; i < len(allVersions); i++ {
+		v64[i] = int64(allVersions[i])
 	}
 
 	fmt.Println(len(v64))
+	versionsToPrune := int64(len(v64)) - int64(versions)
+	if versionsToPrune <= 0 {
+		fmt.Printf("[pruneAppState] No need to prune (%d)\n", versionsToPrune)
+		return nil
+	}
 
-	appStore.PruneHeights = v64[:len(v64)-10]
+	appStore.PruneHeights = v64[:versionsToPrune]
 
 	appStore.PruneStores()
 
 	if dbType == db.GoLevelDBBackend {
 		fmt.Println("compacting application state")
 		levelAppDB := appDB.(*db.GoLevelDB)
+
 		if err := levelAppDB.ForceCompact(nil, nil); err != nil {
-			return err
+			//return err
+			fmt.Println(err.Error())
 		}
 	}
 
@@ -648,21 +789,34 @@ func pruneTMData(home string) error {
 	base := blockStore.Base()
 
 	pruneHeight := blockStore.Height() - int64(blocks)
+	fmt.Printf("[pruneTMData] pruneHeight=%d\n", pruneHeight)
+	if pruneHeight <= 0 {
+		fmt.Println("[pruneTMData] No need to prune")
+		return nil
+	}
+
+	if txIdxHeight <= 0 {
+		txIdxHeight = blockStore.Height()
+		fmt.Printf("[pruneTMData] set txIdxHeight=%d\n", txIdxHeight)
+	}
 
 	//errs, _ := errgroup.WithContext(context.Background())
 	//errs.Go(func() error {
 	fmt.Println("pruning block store")
+
 	// prune block store
 	blocks, err = blockStore.PruneBlocks(pruneHeight)
 	if err != nil {
-		return err
+		//return err
+		fmt.Println(err.Error())
 	}
 
 	if dbType == db.GoLevelDBBackend {
 		fmt.Println("compacting block store")
 		leveldbBlock := blockStoreDB.(*db.GoLevelDB)
 		if err := leveldbBlock.ForceCompact(nil, nil); err != nil {
-			return err
+			//return err
+			fmt.Println(err.Error())
 		}
 	}
 
@@ -694,4 +848,9 @@ func rootify(path, root string) string {
 		return path
 	}
 	return filepath.Join(root, path)
+}
+
+func int64FromBytes(bz []byte) int64 {
+	v, _ := binary.Varint(bz)
+	return v
 }

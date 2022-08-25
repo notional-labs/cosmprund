@@ -16,6 +16,7 @@ var (
 	tendermint bool
 	blocks     uint64
 	versions   uint64
+	tx_idx     bool
 	appName    = "cosmprund"
 )
 
@@ -71,6 +72,9 @@ func NewRootCmd() *cobra.Command {
 	if err := viper.BindPFlag("tendermint", rootCmd.PersistentFlags().Lookup("tendermint")); err != nil {
 		panic(err)
 	}
+
+	// --tx_index flag
+	rootCmd.PersistentFlags().BoolVar(&tx_idx, "tx_index", true, "set to false you dont want to prune tx_index.db (default true)")
 
 	rootCmd.AddCommand(
 		pruneCmd(),
