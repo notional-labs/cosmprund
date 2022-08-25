@@ -95,7 +95,9 @@ func pruneTxIndex(home string) error {
 	var txIdxDB db.DB
 	defer func() {
 		errClose := txIdxDB.Close()
-		fmt.Println(errClose.Error())
+		if errClose != nil {
+			fmt.Println(errClose.Error())
+		}
 	}()
 
 	if dbType == db.GoLevelDBBackend {
