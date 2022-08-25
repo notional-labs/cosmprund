@@ -715,7 +715,6 @@ func pruneAppState(home string) error {
 	}
 
 	appStore.PruneHeights = v64[:versionsToPrune]
-
 	appStore.PruneStores()
 
 	if dbType == db.GoLevelDBBackend {
@@ -805,10 +804,20 @@ func pruneTMData(home string) error {
 	fmt.Println("pruning block store")
 
 	// prune block store
-	blocks, err = blockStore.PruneBlocks(pruneHeight)
-	if err != nil {
-		//return err
-		fmt.Println(err.Error())
+	// prune one by one instead of range to avoid `panic: pebble: batch too large: >= 4.0 G` issue
+	// (see https://github.com/notional-labs/cosmprund/issues/11)
+
+	//blocks, err = blockStore.PruneBlocks(pruneHeight)
+	//if err != nil {
+	//	//return err
+	//	fmt.Println(err.Error())
+	//}
+	for pruneBlockFrom := base; pruneBlockFrom < pruneHeight-1; pruneBlockFrom++ {
+		_, err = blockStore.PruneBlocks(pruneBlockFrom)
+		if err != nil {
+			//return err
+			fmt.Println(err.Error())
+		}
 	}
 
 	if dbType == db.GoLevelDBBackend {
@@ -825,9 +834,18 @@ func pruneTMData(home string) error {
 
 	fmt.Println("pruning state store")
 	// prune state store
-	err = stateStore.PruneStates(base, pruneHeight)
-	if err != nil {
-		return err
+	// prune one by one instead of range to avoid `panic: pebble: batch too large: >= 4.0 G` issue
+	// (see https://github.com/notional-labs/cosmprund/issues/11)
+
+	//err = stateStore.PruneStates(base, pruneHeight)
+	//if err != nil {
+	//	return err
+	//}
+	for pruneStateFrom := base; pruneStateFrom < pruneHeight-1; pruneStateFrom++ {
+		err = stateStore.PruneStates(pruneStateFrom, pruneStateFrom+1)
+		if err != nil {
+			return err
+		}
 	}
 
 	if dbType == db.GoLevelDBBackend {

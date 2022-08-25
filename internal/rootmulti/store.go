@@ -5,18 +5,16 @@ import (
 	"compress/zlib"
 	"encoding/binary"
 	"fmt"
-	"io"
-	"math"
-	"sort"
-	"strings"
-	"sync"
-
 	iavltree "github.com/cosmos/iavl"
 	protoio "github.com/gogo/protobuf/io"
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tm-db"
+	"io"
+	"math"
+	"sort"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/snapshots"
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
@@ -441,29 +439,39 @@ func (rs *Store) PruneStores() {
 		return
 	}
 
-	wg := sync.WaitGroup{}
+	//wg := sync.WaitGroup{}
 	for key, store := range rs.stores {
-		wg.Add(1)
+		//wg.Add(1)
 		if store.GetStoreType() == types.StoreTypeIAVL {
+
+			// prune one by one instead of range to avoid `panic: pebble: batch too large: >= 4.0 G` issue
+			// (see https://github.com/notional-labs/cosmprund/issues/11)
+
 			// If the store is wrapped with an inter-block cache, we must first unwrap
 			// it to get the underlying IAVL store.
-			go func(k types.StoreKey) {
-				store = rs.GetCommitKVStore(k)
-				fmt.Println("pruning store:", k.Name())
-				if err := store.(*iavl.Store).DeleteVersions(rs.PruneHeights...); err != nil {
+			//go func(k types.StoreKey) {
+			store = rs.GetCommitKVStore(key)
+			fmt.Println("pruning store:", key.Name())
+
+			for _, k := range rs.PruneHeights {
+				singleHeight := []int64{k}
+
+				if err := store.(*iavl.Store).DeleteVersions(singleHeight...); err != nil {
 					if errCause := errors.Cause(err); errCause != nil && errCause != iavltree.ErrVersionDoesNotExist {
-						fmt.Println("error pruning store:", k.Name())
+						fmt.Println("error pruning store:", key.Name())
 						if !strings.HasPrefix(err.Error(), "cannot delete latest saved version") {
 							panic(err)
 						}
 					}
 				}
-				fmt.Println("finished pruning store:", k.Name())
-				defer wg.Done()
-			}(key)
+			}
+
+			fmt.Println("finished pruning store:", key.Name())
+			//defer wg.Done()
+			//}(key)
 		}
 	}
-	wg.Wait()
+	//wg.Wait()
 
 	rs.PruneHeights = make([]int64, 0)
 }
