@@ -791,6 +791,7 @@ func pruneTMData(home string) error {
 	fmt.Printf("[pruneTMData] pruneHeight=%d\n", pruneHeight)
 	if pruneHeight <= 0 {
 		fmt.Println("[pruneTMData] No need to prune")
+		return nil
 	}
 
 	if txIdxHeight <= 0 {
