@@ -700,21 +700,21 @@ func pruneAppState(home string) error {
 		return err
 	}
 
-	versions := appStore.GetAllVersions()
+	allVersions := appStore.GetAllVersions()
 
-	v64 := make([]int64, len(versions))
-	for i := 0; i < len(versions); i++ {
-		v64[i] = int64(versions[i])
+	v64 := make([]int64, len(allVersions))
+	for i := 0; i < len(allVersions); i++ {
+		v64[i] = int64(allVersions[i])
 	}
 
 	fmt.Println(len(v64))
-
-	if len(v64)-10 < 0 {
-		fmt.Printf("[pruneAppState] No need to prune (%d)\n", len(v64)-10)
+	versionsToPrune := int64(len(v64)) - int64(versions)
+	if versionsToPrune <= 0 {
+		fmt.Printf("[pruneAppState] No need to prune (%d)\n", versionsToPrune)
 		return nil
 	}
 
-	appStore.PruneHeights = v64[:len(v64)-10]
+	appStore.PruneHeights = v64[:versionsToPrune]
 
 	appStore.PruneStores()
 
