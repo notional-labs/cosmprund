@@ -130,6 +130,12 @@ func pruneTxIndex(home string) error {
 	pruneTxIndexTxs(txIdxDB, pruneHeight)
 
 	fmt.Println("finished pruning tx_index")
+
+	fmt.Println("compacting tx_index")
+	if err := compactDB(txIdxDB); err != nil {
+		fmt.Println(err.Error())
+	}
+
 	return nil
 }
 
@@ -717,17 +723,11 @@ func pruneAppState(home string) error {
 	appStore.PruneHeights = v64[:versionsToPrune]
 	appStore.PruneStores()
 
-	if dbType == db.GoLevelDBBackend {
-		fmt.Println("compacting application state")
-		levelAppDB := appDB.(*db.GoLevelDB)
-
-		if err := levelAppDB.ForceCompact(nil, nil); err != nil {
-			//return err
-			fmt.Println(err.Error())
-		}
+	fmt.Println("compacting application state")
+	if err := compactDB(appDB); err != nil {
+		fmt.Println(err.Error())
 	}
 
-	//create a new app store
 	return nil
 }
 
@@ -820,13 +820,9 @@ func pruneTMData(home string) error {
 		}
 	}
 
-	if dbType == db.GoLevelDBBackend {
-		fmt.Println("compacting block store")
-		leveldbBlock := blockStoreDB.(*db.GoLevelDB)
-		if err := leveldbBlock.ForceCompact(nil, nil); err != nil {
-			//return err
-			fmt.Println(err.Error())
-		}
+	fmt.Println("compacting block store")
+	if err := compactDB(blockStoreDB); err != nil {
+		fmt.Println(err.Error())
 	}
 
 	//return nil
@@ -848,10 +844,42 @@ func pruneTMData(home string) error {
 		}
 	}
 
+	fmt.Println("compacting state store")
+	if err := compactDB(stateDB); err != nil {
+		fmt.Println(err.Error())
+	}
+
+	return nil
+}
+
+// Utils
+func compactDB(vdb db.DB) error {
+	dbType := db.BackendType(backend)
+
 	if dbType == db.GoLevelDBBackend {
-		fmt.Println("compacting state store")
-		leveldbState := stateDB.(*db.GoLevelDB)
-		if err := leveldbState.ForceCompact(nil, nil); err != nil {
+		vdbLevel := vdb.(*db.GoLevelDB)
+
+		if err := vdbLevel.ForceCompact(nil, nil); err != nil {
+			return err
+		}
+	} else if dbType == db.PebbleDBBackend {
+		vdbPebble := vdb.(*db.PebbleDB).DB()
+
+		iter := vdbPebble.NewIter(nil)
+		defer iter.Close()
+
+		var start, end []byte
+
+		if iter.First() {
+			start = cp(iter.Key())
+		}
+
+		if iter.Last() {
+			end = cp(iter.Key())
+		}
+
+		err := vdbPebble.Compact(start, end, false)
+		if err != nil {
 			return err
 		}
 	}
@@ -859,7 +887,11 @@ func pruneTMData(home string) error {
 	return nil
 }
 
-// Utils
+func cp(bz []byte) (ret []byte) {
+	ret = make([]byte, len(bz))
+	copy(ret, bz)
+	return ret
+}
 
 func rootify(path, root string) string {
 	if filepath.IsAbs(path) {
