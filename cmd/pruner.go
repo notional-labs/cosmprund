@@ -688,6 +688,7 @@ func pruneAppState(home string) error {
 
 	if txIdxHeight <= 0 {
 		txIdxHeight = appStore.LastCommitID().Version
+		fmt.Printf("[pruneAppState] set txIdxHeight=%d\n", txIdxHeight)
 	}
 
 	for _, value := range keys {
@@ -796,6 +797,7 @@ func pruneTMData(home string) error {
 
 	if txIdxHeight <= 0 {
 		txIdxHeight = blockStore.Height()
+		fmt.Printf("[pruneTMData] set txIdxHeight=%d\n", txIdxHeight)
 	}
 
 	//errs, _ := errgroup.WithContext(context.Background())
