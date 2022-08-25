@@ -151,9 +151,9 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 
 		if strings.HasPrefix(strKey, "tx.height") { // index by height
 			strs := strings.Split(strKey, "/")
-			intHeight, _ := strconv.Atoi(strs[2])
+			intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
 
-			if intHeight < 88840 {
+			if intHeight < pruneHeight {
 				db.Delete(value)
 				db.Delete(key)
 			}
@@ -161,8 +161,8 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			if len(value) == 32 { // maybe index tx by events
 				strs := strings.Split(strKey, "/")
 				if len(strs) == 4 { // index tx by events
-					intHeight, _ := strconv.Atoi(strs[2])
-					if intHeight < 88840 {
+					intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
+					if intHeight < pruneHeight {
 						db.Delete(key)
 					}
 				}
@@ -189,7 +189,7 @@ func pruneBlockIndex(db db.DB, pruneHeight int64) {
 			intHeight := int64FromBytes(value)
 			//fmt.Printf("intHeight: %d\n", intHeight)
 
-			if intHeight < 88840 {
+			if intHeight < pruneHeight {
 				db.Delete(key)
 			}
 		}
