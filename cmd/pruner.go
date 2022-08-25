@@ -789,6 +789,9 @@ func pruneTMData(home string) error {
 
 	pruneHeight := blockStore.Height() - int64(blocks)
 	fmt.Printf("[pruneTMData] pruneHeight=%d\n", pruneHeight)
+	if pruneHeight <= 0 {
+		fmt.Println("[pruneTMData] No need to prune")
+	}
 
 	if txIdxHeight <= 0 {
 		txIdxHeight = blockStore.Height()
@@ -797,6 +800,7 @@ func pruneTMData(home string) error {
 	//errs, _ := errgroup.WithContext(context.Background())
 	//errs.Go(func() error {
 	fmt.Println("pruning block store")
+
 	// prune block store
 	blocks, err = blockStore.PruneBlocks(pruneHeight)
 	if err != nil {
