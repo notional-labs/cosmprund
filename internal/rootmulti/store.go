@@ -40,7 +40,7 @@ const (
 	snapshotMaxItemSize = int(64e6) // SDK has no key/value size limit, so we set an arbitrary limit
 )
 
-const PRUNE_BATCH_SIZE = 100
+const PRUNE_BATCH_SIZE = 1000
 
 // Store is composed of many CommitStores. Name contrasts with
 // cacheMultiStore which is used for branching other MultiStores. It implements
@@ -460,6 +460,7 @@ func (rs *Store) PruneStores() {
 					endPruneheights = lenPruneheights - 1
 				}
 				subRange := PruneHeights[i:endPruneheights]
+				fmt.Println("\tprunning range[%d-%d] of %d", i, endPruneheights, lenPruneheights)
 
 				if err := store.(*iavl.Store).DeleteVersions(subRange...); err != nil {
 					if errCause := errors.Cause(err); errCause != nil && errCause != iavltree.ErrVersionDoesNotExist {
