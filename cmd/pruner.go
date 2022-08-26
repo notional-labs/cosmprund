@@ -76,11 +76,11 @@ func pruneCmd() *cobra.Command {
 
 func pruneTxIndex(home string) error {
 	fmt.Println("pruning tx_index")
-	dbType := db.BackendType(backend)
-	dbDir := rootify(dataDir, home)
+	txIdxDB, err := openDB(home, "tx_index")
+	if err != nil {
+		return err
+	}
 
-	// Get application
-	var txIdxDB db.DB
 	defer func() {
 		errClose := txIdxDB.Close()
 		if errClose != nil {
@@ -88,27 +88,7 @@ func pruneTxIndex(home string) error {
 		}
 	}()
 
-	if dbType == db.GoLevelDBBackend {
-		o := opt.Options{
-			DisableSeeksCompaction: true,
-		}
-
-		levelTxIdxDB, err := db.NewGoLevelDBWithOpts("tx_index", dbDir, &o)
-		if err != nil {
-			return err
-		}
-
-		txIdxDB = levelTxIdxDB
-	} else {
-		var err error
-		txIdxDB, err = db.NewDB("tx_index", dbType, dbDir)
-		if err != nil {
-			return err
-		}
-	}
-
 	pruneHeight := txIdxHeight - int64(blocks) - 10
-
 	if pruneHeight <= 0 {
 		fmt.Printf("No need to prune (pruneHeight=%d)\n", pruneHeight)
 		return nil
@@ -191,30 +171,9 @@ func pruneBlockIndex(db db.DB, pruneHeight int64) {
 }
 
 func pruneAppState(home string) error {
-	// this has the potential to expand size, should just use state sync
-	dbType := db.BackendType(backend)
-
-	dbDir := rootify(dataDir, home)
-
-	// Get application
-	var appDB db.DB
-	if dbType == db.GoLevelDBBackend {
-		o := opt.Options{
-			DisableSeeksCompaction: true,
-		}
-
-		levelAppDB, err := db.NewGoLevelDBWithOpts("application", dbDir, &o)
-		if err != nil {
-			return err
-		}
-
-		appDB = levelAppDB
-	} else {
-		var err error
-		appDB, err = db.NewDB("application", dbType, dbDir)
-		if err != nil {
-			return err
-		}
+	appDB, errDB := openDB(home, "application")
+	if errDB != nil {
+		return errDB
 	}
 
 	defer appDB.Close()
@@ -720,51 +679,18 @@ func pruneAppState(home string) error {
 
 // pruneTMData prunes the tendermint blocks and state based on the amount of blocks to keep
 func pruneTMData(home string) error {
-	dbType := db.BackendType(backend)
-
-	dbDir := rootify(dataDir, home)
-
-	var blockStoreDB db.DB
-
-	// Get blockstore
-	if dbType == db.GoLevelDBBackend {
-		o := opt.Options{
-			DisableSeeksCompaction: true,
-		}
-		bDB, err := db.NewGoLevelDBWithOpts("blockstore", dbDir, &o)
-		if err != nil {
-			return err
-		}
-
-		blockStoreDB = bDB
-	} else {
-		var err error
-		blockStoreDB, err = db.NewDB("blockstore", dbType, dbDir)
-		if err != nil {
-			return err
-		}
+	blockStoreDB, errDBBlock := openDB(home, "blockstore")
+	if errDBBlock != nil {
+		return errDBBlock
 	}
 
 	blockStore := tmstore.NewBlockStore(blockStoreDB)
 	defer blockStore.Close()
 
 	// Get StateStore
-	var stateDB db.DB
-	if dbType == db.GoLevelDBBackend {
-		o := opt.Options{
-			DisableSeeksCompaction: true,
-		}
-		sDB, err := db.NewGoLevelDBWithOpts("state", dbDir, &o)
-		if err != nil {
-			return err
-		}
-		stateDB = sDB
-	} else {
-		var err error
-		stateDB, err = db.NewDB("state", dbType, dbDir)
-		if err != nil {
-			return err
-		}
+	stateDB, errDBBState := openDB(home, "state")
+	if errDBBState != nil {
+		return errDBBState
 	}
 
 	var err error
@@ -824,6 +750,35 @@ func pruneTMData(home string) error {
 }
 
 // Utils
+
+func openDB(home string, dbname string) (db.DB, error) {
+	dbType := db.BackendType(backend)
+	dbDir := rootify(dataDir, home)
+
+	var db1 db.DB
+
+	if dbType == db.GoLevelDBBackend {
+		o := opt.Options{
+			DisableSeeksCompaction: true,
+		}
+
+		levelTxIdxDB, err := db.NewGoLevelDBWithOpts(dbname, dbDir, &o)
+		if err != nil {
+			return nil, err
+		}
+
+		db1 = levelTxIdxDB
+	} else {
+		var err error
+		db1, err = db.NewDB(dbname, dbType, dbDir)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return db1, nil
+}
+
 func compactDB(vdb db.DB) error {
 	dbType := db.BackendType(backend)
 
