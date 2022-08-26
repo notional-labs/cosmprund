@@ -439,9 +439,7 @@ func (rs *Store) PruneStores() {
 		return
 	}
 
-	//wg := sync.WaitGroup{}
 	for key, store := range rs.stores {
-		//wg.Add(1)
 		if store.GetStoreType() == types.StoreTypeIAVL {
 
 			// prune one by one instead of range to avoid `panic: pebble: batch too large: >= 4.0 G` issue
@@ -449,7 +447,6 @@ func (rs *Store) PruneStores() {
 
 			// If the store is wrapped with an inter-block cache, we must first unwrap
 			// it to get the underlying IAVL store.
-			//go func(k types.StoreKey) {
 			store = rs.GetCommitKVStore(key)
 			fmt.Println("pruning store:", key.Name())
 
@@ -458,20 +455,18 @@ func (rs *Store) PruneStores() {
 
 				if err := store.(*iavl.Store).DeleteVersions(singleHeight...); err != nil {
 					if errCause := errors.Cause(err); errCause != nil && errCause != iavltree.ErrVersionDoesNotExist {
-						fmt.Println("error pruning store:", key.Name())
+						fmt.Printf("error pruning store: %s (%s)", key.Name(), err.Error())
 						if !strings.HasPrefix(err.Error(), "cannot delete latest saved version") {
-							panic(err)
+							//panic(err)
+							break
 						}
 					}
 				}
 			}
 
 			fmt.Println("finished pruning store:", key.Name())
-			//defer wg.Done()
-			//}(key)
 		}
 	}
-	//wg.Wait()
 
 	rs.PruneHeights = make([]int64, 0)
 }

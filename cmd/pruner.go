@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	//"context"
 	"encoding/binary"
 	"fmt"
 	"path/filepath"
@@ -23,7 +22,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	//"github.com/neilotoole/errgroup"
 	"github.com/spf13/cobra"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/tendermint/tendermint/state"
@@ -51,35 +49,25 @@ func pruneCmd() *cobra.Command {
 			//errs, _ := errgroup.WithContext(ctx)
 			var err error
 			if tendermint {
-				//errs.Go(func() error {
 				if err = pruneTMData(args[0]); err != nil {
 					fmt.Println(err.Error())
-					//return err
 				}
-				//	return nil
-				//})
 			}
 
 			if cosmosSdk {
 				err = pruneAppState(args[0])
 				if err != nil {
-					//return err
 					fmt.Println(err.Error())
 				}
-				//return nil
-
 			}
 
 			if tx_idx {
 				err = pruneTxIndex(args[0])
 				if err != nil {
-					//return err
 					fmt.Println(err.Error())
 				}
-				//return nil
 			}
 
-			//return errs.Wait()
 			return nil
 		},
 	}
@@ -203,7 +191,6 @@ func pruneBlockIndex(db db.DB, pruneHeight int64) {
 }
 
 func pruneAppState(home string) error {
-
 	// this has the potential to expand size, should just use state sync
 	dbType := db.BackendType(backend)
 
@@ -799,19 +786,11 @@ func pruneTMData(home string) error {
 		fmt.Printf("[pruneTMData] set txIdxHeight=%d\n", txIdxHeight)
 	}
 
-	//errs, _ := errgroup.WithContext(context.Background())
-	//errs.Go(func() error {
 	fmt.Println("pruning block store")
 
 	// prune block store
 	// prune one by one instead of range to avoid `panic: pebble: batch too large: >= 4.0 G` issue
 	// (see https://github.com/notional-labs/cosmprund/issues/11)
-
-	//blocks, err = blockStore.PruneBlocks(pruneHeight)
-	//if err != nil {
-	//	//return err
-	//	fmt.Println(err.Error())
-	//}
 	for pruneBlockFrom := base; pruneBlockFrom < pruneHeight-1; pruneBlockFrom++ {
 		_, err = blockStore.PruneBlocks(pruneBlockFrom)
 		if err != nil {
@@ -825,18 +804,10 @@ func pruneTMData(home string) error {
 		fmt.Println(err.Error())
 	}
 
-	//return nil
-	//})
-
 	fmt.Println("pruning state store")
 	// prune state store
 	// prune one by one instead of range to avoid `panic: pebble: batch too large: >= 4.0 G` issue
 	// (see https://github.com/notional-labs/cosmprund/issues/11)
-
-	//err = stateStore.PruneStates(base, pruneHeight)
-	//if err != nil {
-	//	return err
-	//}
 	for pruneStateFrom := base; pruneStateFrom < pruneHeight-1; pruneStateFrom++ {
 		err = stateStore.PruneStates(pruneStateFrom, pruneStateFrom+1)
 		if err != nil {
