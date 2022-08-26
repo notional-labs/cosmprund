@@ -460,7 +460,7 @@ func (rs *Store) PruneStores() {
 					endPruneheights = lenPruneheights - 1
 				}
 				subRange := PruneHeights[i:endPruneheights]
-				fmt.Println("\tprunning range[%d-%d] of %d", i, endPruneheights, lenPruneheights)
+				fmt.Printf("\tprunning range[%d-%d] of %d\n", i, endPruneheights, lenPruneheights)
 
 				if err := store.(*iavl.Store).DeleteVersions(subRange...); err != nil {
 					if errCause := errors.Cause(err); errCause != nil && errCause != iavltree.ErrVersionDoesNotExist {
