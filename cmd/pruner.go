@@ -100,9 +100,11 @@ func pruneTxIndex(home string) error {
 
 	fmt.Println("finished pruning tx_index")
 
-	fmt.Println("compacting tx_index")
-	if err := compactDB(txIdxDB); err != nil {
-		fmt.Println(err.Error())
+	if compact {
+		fmt.Println("compacting tx_index")
+		if err := compactDB(txIdxDB); err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 
 	return nil
@@ -670,9 +672,11 @@ func pruneAppState(home string) error {
 	appStore.PruneHeights = v64[:versionsToPrune]
 	appStore.PruneStores()
 
-	fmt.Println("compacting application state")
-	if err := compactDB(appDB); err != nil {
-		fmt.Println(err.Error())
+	if compact {
+		fmt.Println("compacting application state")
+		if err := compactDB(appDB); err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 
 	return nil
@@ -731,9 +735,11 @@ func pruneTMData(home string) error {
 		}
 	}
 
-	fmt.Println("compacting block store")
-	if err := compactDB(blockStoreDB); err != nil {
-		fmt.Println(err.Error())
+	if compact {
+		fmt.Println("compacting block store")
+		if err := compactDB(blockStoreDB); err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 
 	fmt.Println("pruning state store")
@@ -751,9 +757,11 @@ func pruneTMData(home string) error {
 		}
 	}
 
-	fmt.Println("compacting state store")
-	if err := compactDB(stateDB); err != nil {
-		fmt.Println(err.Error())
+	if compact {
+		fmt.Println("compacting state store")
+		if err := compactDB(stateDB); err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 
 	return nil
@@ -780,7 +788,7 @@ func openDB(dbname string, home string) (db.DB, error) {
 		db1 = lvlDB
 	} else if dbType == db.PebbleDBBackend {
 		opts := &pebble.Options{
-			//DisableAutomaticCompactions: true,
+			//DisableAutomaticCompactions: true, // freeze when pruning!
 		}
 		opts.EnsureDefaults()
 
