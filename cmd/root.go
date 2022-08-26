@@ -78,7 +78,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().BoolVar(&tx_idx, "tx_index", true, "set to false you dont want to prune tx_index.db (default true)")
 
 	// --compact flag
-	rootCmd.PersistentFlags().BoolVar(&compact, "compact", true, "set to false you dont want to compact dbs after prunning")
+	rootCmd.PersistentFlags().BoolVar(&compact, "compact", true, "set to false you dont want to compact dbs after prunning (default true)")
 
 	rootCmd.AddCommand(
 		pruneCmd(),
