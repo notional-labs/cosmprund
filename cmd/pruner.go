@@ -780,7 +780,7 @@ func openDB(dbname string, home string) (db.DB, error) {
 		db1 = lvlDB
 	} else if dbType == db.PebbleDBBackend {
 		opts := &pebble.Options{
-			DisableAutomaticCompactions: true,
+			//DisableAutomaticCompactions: true,
 		}
 		opts.EnsureDefaults()
 
