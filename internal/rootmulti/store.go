@@ -40,7 +40,7 @@ const (
 	snapshotMaxItemSize = int(64e6) // SDK has no key/value size limit, so we set an arbitrary limit
 )
 
-const PRUNE_BATCH_SIZE = 1000
+const PRUNE_BATCH_SIZE = 10000
 
 // Store is composed of many CommitStores. Name contrasts with
 // cacheMultiStore which is used for branching other MultiStores. It implements
