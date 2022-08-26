@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/cockroachdb/pebble"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -76,7 +77,7 @@ func pruneCmd() *cobra.Command {
 
 func pruneTxIndex(home string) error {
 	fmt.Println("pruning tx_index")
-	txIdxDB, err := openDB(home, "tx_index")
+	txIdxDB, err := openDB("tx_index", home)
 	if err != nil {
 		return err
 	}
@@ -171,7 +172,7 @@ func pruneBlockIndex(db db.DB, pruneHeight int64) {
 }
 
 func pruneAppState(home string) error {
-	appDB, errDB := openDB(home, "application")
+	appDB, errDB := openDB("application", home)
 	if errDB != nil {
 		return errDB
 	}
@@ -679,7 +680,7 @@ func pruneAppState(home string) error {
 
 // pruneTMData prunes the tendermint blocks and state based on the amount of blocks to keep
 func pruneTMData(home string) error {
-	blockStoreDB, errDBBlock := openDB(home, "blockstore")
+	blockStoreDB, errDBBlock := openDB("blockstore", home)
 	if errDBBlock != nil {
 		return errDBBlock
 	}
@@ -688,7 +689,7 @@ func pruneTMData(home string) error {
 	defer blockStore.Close()
 
 	// Get StateStore
-	stateDB, errDBBState := openDB(home, "state")
+	stateDB, errDBBState := openDB("state", home)
 	if errDBBState != nil {
 		return errDBBState
 	}
@@ -751,7 +752,7 @@ func pruneTMData(home string) error {
 
 // Utils
 
-func openDB(home string, dbname string) (db.DB, error) {
+func openDB(dbname string, home string) (db.DB, error) {
 	dbType := db.BackendType(backend)
 	dbDir := rootify(dataDir, home)
 
@@ -762,12 +763,24 @@ func openDB(home string, dbname string) (db.DB, error) {
 			DisableSeeksCompaction: true,
 		}
 
-		levelTxIdxDB, err := db.NewGoLevelDBWithOpts(dbname, dbDir, &o)
+		lvlDB, err := db.NewGoLevelDBWithOpts(dbname, dbDir, &o)
 		if err != nil {
 			return nil, err
 		}
 
-		db1 = levelTxIdxDB
+		db1 = lvlDB
+	} else if dbType == db.PebbleDBBackend {
+		opts := &pebble.Options{
+			DisableAutomaticCompactions: true,
+		}
+		opts.EnsureDefaults()
+
+		ppDB, err := db.NewPebbleDBWithOpts(dbname, dbDir, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		db1 = ppDB
 	} else {
 		var err error
 		db1, err = db.NewDB(dbname, dbType, dbDir)
