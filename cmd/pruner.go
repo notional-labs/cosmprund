@@ -718,8 +718,13 @@ func pruneTMData(home string) error {
 	// prune block store
 	// prune one by one instead of range to avoid `panic: pebble: batch too large: >= 4.0 G` issue
 	// (see https://github.com/notional-labs/cosmprund/issues/11)
-	for pruneBlockFrom := base; pruneBlockFrom < pruneHeight-1; pruneBlockFrom++ {
-		_, err = blockStore.PruneBlocks(pruneBlockFrom)
+	for pruneBlockFrom := base; pruneBlockFrom < pruneHeight-1; pruneBlockFrom += rootmulti.PRUNE_BATCH_SIZE {
+		height := pruneBlockFrom
+		if height >= pruneHeight-1 {
+			height = pruneHeight - 1
+		}
+
+		_, err = blockStore.PruneBlocks(height)
 		if err != nil {
 			//return err
 			fmt.Println(err.Error())
@@ -735,8 +740,12 @@ func pruneTMData(home string) error {
 	// prune state store
 	// prune one by one instead of range to avoid `panic: pebble: batch too large: >= 4.0 G` issue
 	// (see https://github.com/notional-labs/cosmprund/issues/11)
-	for pruneStateFrom := base; pruneStateFrom < pruneHeight-1; pruneStateFrom++ {
-		err = stateStore.PruneStates(pruneStateFrom, pruneStateFrom+1)
+	for pruneStateFrom := base; pruneStateFrom < pruneHeight-1; pruneStateFrom += rootmulti.PRUNE_BATCH_SIZE {
+		endHeight := pruneStateFrom + rootmulti.PRUNE_BATCH_SIZE
+		if endHeight >= pruneHeight-1 {
+			endHeight = pruneHeight - 1
+		}
+		err = stateStore.PruneStates(pruneStateFrom, endHeight)
 		if err != nil {
 			return err
 		}
