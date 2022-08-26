@@ -465,10 +465,10 @@ func (rs *Store) PruneStores() {
 				if err := store.(*iavl.Store).DeleteVersions(subRange...); err != nil {
 					if errCause := errors.Cause(err); errCause != nil && errCause != iavltree.ErrVersionDoesNotExist {
 						fmt.Printf("error pruning store: %s (%s)", key.Name(), err.Error())
-						if !strings.HasPrefix(err.Error(), "cannot delete latest saved version") {
-							//panic(err)
-							break
-						}
+						//if !strings.HasPrefix(err.Error(), "cannot delete latest saved version") {
+						//panic(err)
+						break
+						//}
 					}
 				}
 			}
