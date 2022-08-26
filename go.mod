@@ -7,7 +7,6 @@ require (
 	github.com/cosmos/iavl v0.17.3
 	github.com/cosmos/ibc-go/v2 v2.0.2
 	github.com/gogo/protobuf v1.3.3
-	github.com/neilotoole/errgroup v0.1.5
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.0
@@ -120,4 +119,4 @@ require (
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/tendermint/tm-db => github.com/baabeetaa/tm-db v0.6.7-0.20220728101401-7c0a33fd88c8
+replace github.com/tendermint/tm-db => github.com/baabeetaa/tm-db v0.6.7-0.20220826142638-de23c0958155

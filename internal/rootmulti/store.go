@@ -40,6 +40,8 @@ const (
 	snapshotMaxItemSize = int(64e6) // SDK has no key/value size limit, so we set an arbitrary limit
 )
 
+const PRUNE_BATCH_SIZE = 10000
+
 // Store is composed of many CommitStores. Name contrasts with
 // cacheMultiStore which is used for branching other MultiStores. It implements
 // the CommitMultiStore interface.
@@ -435,7 +437,9 @@ type empty struct{}
 // PruneStores will batch delete a list of heights from each mounted sub-store.
 // Afterwards, pruneHeights is reset.
 func (rs *Store) PruneStores() {
-	if len(rs.PruneHeights) == 0 {
+	PruneHeights := rs.PruneHeights
+	lenPruneheights := len(PruneHeights)
+	if lenPruneheights == 0 {
 		return
 	}
 
@@ -450,16 +454,21 @@ func (rs *Store) PruneStores() {
 			store = rs.GetCommitKVStore(key)
 			fmt.Println("pruning store:", key.Name())
 
-			for _, k := range rs.PruneHeights {
-				singleHeight := []int64{k}
+			for i := 0; i < lenPruneheights; i += PRUNE_BATCH_SIZE {
+				endPruneheights := i + PRUNE_BATCH_SIZE - 1
+				if endPruneheights > lenPruneheights-1 {
+					endPruneheights = lenPruneheights - 1
+				}
+				subRange := PruneHeights[i:endPruneheights]
+				fmt.Printf("\tprunning range[%d-%d] of %d\n", i, endPruneheights, lenPruneheights)
 
-				if err := store.(*iavl.Store).DeleteVersions(singleHeight...); err != nil {
+				if err := store.(*iavl.Store).DeleteVersions(subRange...); err != nil {
 					if errCause := errors.Cause(err); errCause != nil && errCause != iavltree.ErrVersionDoesNotExist {
 						fmt.Printf("error pruning store: %s (%s)", key.Name(), err.Error())
-						if !strings.HasPrefix(err.Error(), "cannot delete latest saved version") {
-							//panic(err)
-							break
-						}
+						//if !strings.HasPrefix(err.Error(), "cannot delete latest saved version") {
+						//panic(err)
+						break
+						//}
 					}
 				}
 			}
