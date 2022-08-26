@@ -455,7 +455,7 @@ func (rs *Store) PruneStores() {
 			fmt.Println("pruning store:", key.Name())
 
 			for i := 0; i < lenPruneheights; i += PRUNE_BATCH_SIZE {
-				endPruneheights := i + PRUNE_BATCH_SIZE
+				endPruneheights := i + PRUNE_BATCH_SIZE - 1
 				if endPruneheights > lenPruneheights-1 {
 					endPruneheights = lenPruneheights - 1
 				}
