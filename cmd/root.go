@@ -17,6 +17,7 @@ var (
 	blocks     uint64
 	versions   uint64
 	tx_idx     bool
+	compact    bool
 	appName    = "cosmprund"
 )
 
@@ -75,6 +76,9 @@ func NewRootCmd() *cobra.Command {
 
 	// --tx_index flag
 	rootCmd.PersistentFlags().BoolVar(&tx_idx, "tx_index", true, "set to false you dont want to prune tx_index.db (default true)")
+
+	// --compact flag
+	rootCmd.PersistentFlags().BoolVar(&compact, "compact", true, "set to false you dont want to compact dbs after prunning")
 
 	rootCmd.AddCommand(
 		pruneCmd(),
