@@ -136,8 +136,8 @@ github.com/aws/aws-sdk-go-v2 v1.9.1/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVj
 github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.8.1/go.mod h1:CM+19rL1+4dFWnOQKwDc7H1KwXTz+h61oUSHyhV0b3o=
 github.com/aws/smithy-go v1.8.0/go.mod h1:SObp3lf9smib00L/v3U2eAKG8FyQ7iLrJnQiAmR5n+E=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
-github.com/baabeetaa/tm-db v0.6.7-0.20220816194233-1feecd55b9a9 h1:gDopq33W3byyfjavfYYB1c2ACQIqlR1l18HMAcywYbs=
-github.com/baabeetaa/tm-db v0.6.7-0.20220816194233-1feecd55b9a9/go.mod h1:89wa64apdojIUNiEO2D6WmfDEPduTVpsbstMwxCY2Ks=
+github.com/baabeetaa/tm-db v0.6.7-0.20220827003937-31989c12be6f h1:+pTUthDVIt3W61cJk3xGdgb/5AEmK8afrTPWWIXJmso=
+github.com/baabeetaa/tm-db v0.6.7-0.20220827003937-31989c12be6f/go.mod h1:89wa64apdojIUNiEO2D6WmfDEPduTVpsbstMwxCY2Ks=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=

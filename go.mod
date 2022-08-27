@@ -119,4 +119,4 @@ require (
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/tendermint/tm-db => github.com/baabeetaa/tm-db v0.6.7-0.20220816194233-1feecd55b9a9
+replace github.com/tendermint/tm-db => github.com/baabeetaa/tm-db v0.6.7-0.20220827003937-31989c12be6f
