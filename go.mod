@@ -3,6 +3,7 @@ module github.com/binaryholdings/cosmos-pruner
 go 1.17
 
 require (
+	github.com/cockroachdb/pebble v0.0.0-20220726134658-7b78c71e4055
 	github.com/cosmos/cosmos-sdk v0.45.2-0.20220209090836-4161d2b6022a
 	github.com/cosmos/iavl v0.17.3
 	github.com/cosmos/ibc-go/v2 v2.0.2
@@ -30,7 +31,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cockroachdb/errors v1.8.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
-	github.com/cockroachdb/pebble v0.0.0-20220726134658-7b78c71e4055 // indirect
 	github.com/cockroachdb/redact v1.0.8 // indirect
 	github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2 // indirect
 	github.com/confio/ics23/go v0.6.6 // indirect
@@ -119,4 +119,4 @@ require (
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/tendermint/tm-db => github.com/baabeetaa/tm-db v0.6.7-0.20220826142638-de23c0958155
+replace github.com/tendermint/tm-db => github.com/baabeetaa/tm-db v0.6.7-0.20220816194233-1feecd55b9a9
