@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/cockroachdb/pebble"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -634,6 +636,62 @@ func pruneAppState(home string) error {
 		)
 
 		for key, value := range umeeKeys {
+			keys[key] = value
+		}
+	} else if app == "sei" {
+		seieys := types.NewKVStoreKeys(
+			"feegrant", // feegrant.StoreKey,
+			"oracle",   // oracletypes.StoreKey,
+			"wasm",     // wasm.StoreKey,
+			"dex",      // dexmoduletypes.StoreKey,
+			"epoch",    // epochmoduletypes.StoreKey,
+		)
+
+		for key, value := range seieys {
+			keys[key] = value
+		}
+	} else if app == "injective" {
+		injectiveKeys := types.NewKVStoreKeys(
+			"feegrant",  // feegrant.StoreKey,
+			"authz",     // authzkeeper.StoreKey,
+			"icahost",   // icahosttypes.StoreKey,
+			"exchange",  // exchangetypes.StoreKey,
+			"oracle",    // oracletypes.StoreKey,
+			"insurance", //insurancetypes.StoreKey,
+			"peggy",     // peggytypes.StoreKey,
+			"auction",   // auctiontypes.StoreKey,
+			"chainlink", // ocrtypes.StoreKey,
+			"wasm",      // wasm.StoreKey,
+			"xwasm",     // wasmxtypes.StoreKey,
+		)
+
+		for key, value := range injectiveKeys {
+			keys[key] = value
+		}
+	} else if app == "kujira" {
+		kujiraKeys := types.NewKVStoreKeys(
+			"authz",         // authz.ModuleName,
+			"feegrant",      // feegrant.StoreKey,
+			"wasm",          // wasm.StoreKey,
+			"denom",         // denomtypes.StoreKey,
+			"icahost",       // icahosttypes.StoreKey,
+			"icacontroller", // icacontrollertypes.StoreKey,
+			"intertx",       // intertxtypes.StoreKey,
+			"scheduler",     // schedulertypes.StoreKey,
+			"oracle",        // oracletypes.StoreKey,
+		)
+
+		for key, value := range kujiraKeys {
+			keys[key] = value
+		}
+	} else if app == "passage" {
+		passageKeys := types.NewKVStoreKeys(
+			"feegrant", // feegrant.StoreKey,
+			"authz",    // authzkeeper.StoreKey,
+			"claim",    // claimtypes.StoreKey,
+		)
+
+		for key, value := range passageKeys {
 			keys[key] = value
 		}
 	}
