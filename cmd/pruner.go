@@ -684,6 +684,16 @@ func pruneAppState(home string) error {
 		for key, value := range kujiraKeys {
 			keys[key] = value
 		}
+	} else if app == "passage" {
+		passageKeys := types.NewKVStoreKeys(
+			"feegrant", // feegrant.StoreKey,
+			"authz",    // authzkeeper.StoreKey,
+			"claim",    // claimtypes.StoreKey,
+		)
+
+		for key, value := range passageKeys {
+			keys[key] = value
+		}
 	}
 
 	// TODO: cleanup app state
