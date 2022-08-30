@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/cockroachdb/pebble"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -631,6 +632,18 @@ func pruneAppState(home string) error {
 			"feegrant", // feegrant.StoreKey,
 			"authz",    // authzkeeper.StoreKey,
 			"gravity",  // gravitytypes.StoreKey,
+		)
+
+		for key, value := range umeeKeys {
+			keys[key] = value
+		}
+	} else if app == "sei" {
+		umeeKeys := types.NewKVStoreKeys(
+			"feegrant", // feegrant.StoreKey,
+			"oracle",   // oracletypes.StoreKey,
+			"wasm",     // wasm.StoreKey,
+			"dex",      // dexmoduletypes.StoreKey,
+			"epoch",    // epochmoduletypes.StoreKey,
 		)
 
 		for key, value := range umeeKeys {
