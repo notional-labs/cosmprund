@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/cockroachdb/pebble"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	"path/filepath"
 	"strconv"
 	"strings"
