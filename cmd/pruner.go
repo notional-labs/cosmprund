@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/cockroachdb/pebble"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	"path/filepath"
 	"strconv"
@@ -650,7 +651,7 @@ func pruneAppState(home string) error {
 			keys[key] = value
 		}
 	} else if app == "injective" {
-		umeeKeys := types.NewKVStoreKeys(
+		injectiveKeys := types.NewKVStoreKeys(
 			"feegrant",  // feegrant.StoreKey,
 			"authz",     // authzkeeper.StoreKey,
 			"icahost",   // icahosttypes.StoreKey,
@@ -664,7 +665,23 @@ func pruneAppState(home string) error {
 			"xwasm",     // wasmxtypes.StoreKey,
 		)
 
-		for key, value := range umeeKeys {
+		for key, value := range injectiveKeys {
+			keys[key] = value
+		}
+	} else if app == "kujira" {
+		kujiraKeys := types.NewKVStoreKeys(
+			"authz",         // authz.ModuleName,
+			"feegrant",      // feegrant.StoreKey,
+			"wasm",          // wasm.StoreKey,
+			"denom",         // denomtypes.StoreKey,
+			"icahost",       // icahosttypes.StoreKey,
+			"icacontroller", // icacontrollertypes.StoreKey,
+			"intertx",       // intertxtypes.StoreKey,
+			"scheduler",     // schedulertypes.StoreKey,
+			"oracle",        // oracletypes.StoreKey,
+		)
+
+		for key, value := range kujiraKeys {
 			keys[key] = value
 		}
 	}
