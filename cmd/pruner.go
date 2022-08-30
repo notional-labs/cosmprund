@@ -638,12 +638,30 @@ func pruneAppState(home string) error {
 			keys[key] = value
 		}
 	} else if app == "sei" {
-		umeeKeys := types.NewKVStoreKeys(
+		seieys := types.NewKVStoreKeys(
 			"feegrant", // feegrant.StoreKey,
 			"oracle",   // oracletypes.StoreKey,
 			"wasm",     // wasm.StoreKey,
 			"dex",      // dexmoduletypes.StoreKey,
 			"epoch",    // epochmoduletypes.StoreKey,
+		)
+
+		for key, value := range seieys {
+			keys[key] = value
+		}
+	} else if app == "injective" {
+		umeeKeys := types.NewKVStoreKeys(
+			"feegrant",  // feegrant.StoreKey,
+			"authz",     // authzkeeper.StoreKey,
+			"icahost",   // icahosttypes.StoreKey,
+			"exchange",  // exchangetypes.StoreKey,
+			"oracle",    // oracletypes.StoreKey,
+			"insurance", //insurancetypes.StoreKey,
+			"peggy",     // peggytypes.StoreKey,
+			"auction",   // auctiontypes.StoreKey,
+			"chainlink", // ocrtypes.StoreKey,
+			"wasm",      // wasm.StoreKey,
+			"xwasm",     // wasmxtypes.StoreKey,
 		)
 
 		for key, value := range umeeKeys {
