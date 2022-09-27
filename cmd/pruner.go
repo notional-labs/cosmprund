@@ -722,11 +722,11 @@ func pruneAppState(home string) error {
 	versionsToPrune := int64(len(v64)) - 10
 	if versionsToPrune <= 0 {
 		fmt.Printf("[pruneAppState] No need to prune (%d)\n", versionsToPrune)
-		return nil
-	}
+		//return nil
 
-	appStore.PruneHeights = v64[:versionsToPrune]
-	appStore.PruneStores()
+		appStore.PruneHeights = v64[:versionsToPrune]
+		appStore.PruneStores()
+	}
 
 	if compact {
 		fmt.Println("compacting application state")
@@ -809,7 +809,8 @@ func pruneTMData(home string) error {
 		}
 		err = stateStore.PruneStates(pruneStateFrom, endHeight)
 		if err != nil {
-			return err
+			//return err
+			fmt.Println(err.Error())
 		}
 	}
 
