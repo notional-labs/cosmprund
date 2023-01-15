@@ -79,6 +79,7 @@ Flags:
 - irisnet: IRISnet
 - axelar: Axelar
 - umee: Umee
+- terra2: Terra2
 
 
 ### Note
