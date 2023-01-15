@@ -692,6 +692,18 @@ func pruneAppState(home string) error {
 		for key, value := range passageKeys {
 			keys[key] = value
 		}
+	} else if app == "terra2" {
+		terra2Keys := types.NewKVStoreKeys(
+			"authz",                  // authzkeeper.StoreKey,
+			"feegrant",               // feegrant.StoreKey,
+			"icahost",                // icahosttypes.StoreKey,
+			"packetfowardmiddleware", // routertypes.StoreKey,
+			"wasm",                   //wasm.StoreKey,
+		)
+
+		for key, value := range terra2Keys {
+			keys[key] = value
+		}
 	}
 
 	// TODO: cleanup app state
