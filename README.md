@@ -80,6 +80,7 @@ Flags:
 - axelar: Axelar
 - umee: Umee
 - terra2: Terra2
+- mars: Mars Protocol
 
 
 ### Note
