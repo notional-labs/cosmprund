@@ -705,7 +705,7 @@ func pruneAppState(home string) error {
 			keys[key] = value
 		}
 	} else if app == "mars" {
-		terra2Keys := types.NewKVStoreKeys(
+		marsKeys := types.NewKVStoreKeys(
 			"authz",        // authzkeeper.StoreKey,
 			"distribution", // distrtypes.StoreKey,
 			"feegrant",     // feegrant.StoreKey,
@@ -713,7 +713,7 @@ func pruneAppState(home string) error {
 			"incentives",   //incentivestypes.StoreKey,
 		)
 
-		for key, value := range terra2Keys {
+		for key, value := range marsKeys {
 			keys[key] = value
 		}
 	}
