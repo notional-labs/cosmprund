@@ -81,8 +81,8 @@ Flags:
 - umee: Umee
 - terra2: Terra2
 - mars: Mars Protocol
-- stride: stride
-
+- stride: Stride
+- injective: Injective
 
 ### Note
 To use this with RocksDB you must:
