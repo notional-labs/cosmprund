@@ -81,6 +81,7 @@ Flags:
 - umee: Umee
 - terra2: Terra2
 - mars: Mars Protocol
+- stride: stride
 
 
 ### Note

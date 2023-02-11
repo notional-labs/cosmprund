@@ -716,6 +716,22 @@ func pruneAppState(home string) error {
 		for key, value := range marsKeys {
 			keys[key] = value
 		}
+	} else if app == "stride" {
+		strideKeys := types.NewKVStoreKeys(
+			"feegrant",        // feegrant.StoreKey,
+			"stakeibc",        // stakeibcmoduletypes.StoreKey,
+			"epochs",          // epochsmoduletypes.StoreKey,
+			"interchainquery", // interchainquerytypes.StoreKey,
+			"icacontroller",   // icacontrollertypes.StoreKey,
+			"icahost",         // icahosttypes.StoreKey,
+			"records",         // recordsmoduletypes.StoreKey,
+			"icacallbacks",    // icacallbacksmoduletypes.StoreKey,
+			"claim",           //claimtypes.StoreKey,
+		)
+
+		for key, value := range strideKeys {
+			keys[key] = value
+		}
 	}
 
 	// TODO: cleanup app state
