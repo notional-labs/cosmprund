@@ -83,6 +83,7 @@ Flags:
 - mars: Mars Protocol
 - stride: Stride
 - injective: Injective
+- kujira: Kujira
 
 ### Note
 To use this with RocksDB you must:
