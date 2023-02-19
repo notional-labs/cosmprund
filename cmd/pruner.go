@@ -510,6 +510,7 @@ func pruneAppState(home string) error {
 		digKeys := types.NewKVStoreKeys(
 			"feegrant", // feegrant.StoreKey,
 			"authz",    // authzkeeper.StoreKey,
+			"icahost",  // icaHostTypes.StoreKey,
 			"wasm",     // wasm.StoreKey,
 		)
 
