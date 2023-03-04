@@ -439,6 +439,7 @@ type empty struct{}
 func (rs *Store) PruneStores() {
 	PruneHeights := rs.PruneHeights
 	lenPruneheights := len(PruneHeights)
+	fmt.Printf("[PruneStores] lenPruneheights=(%d)\n", lenPruneheights)
 	if lenPruneheights == 0 {
 		return
 	}
