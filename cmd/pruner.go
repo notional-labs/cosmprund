@@ -761,6 +761,7 @@ func pruneAppState(home string) error {
 
 	fmt.Println(len(v64))
 	versionsToPrune := int64(len(v64)) - 10
+	fmt.Printf("[pruneAppState] versionsToPrune= (%d)\n", versionsToPrune)
 	if versionsToPrune <= 0 {
 		fmt.Printf("[pruneAppState] No need to prune (%d)\n", versionsToPrune)
 		//return nil
