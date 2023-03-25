@@ -920,7 +920,7 @@ func compactDB(vdb db.DB) error {
 		vdbPebble := vdb.(*db.PebbleDB).DB()
 
 		iter := vdbPebble.NewIter(nil)
-		defer iter.Close()
+		//defer iter.Close()
 
 		var start, end []byte
 
@@ -931,6 +931,9 @@ func compactDB(vdb db.DB) error {
 		if iter.Last() {
 			end = cp(iter.Key())
 		}
+
+		// close iter before compacting
+		iter.Close()
 
 		err := vdbPebble.Compact(start, end, false)
 		if err != nil {
