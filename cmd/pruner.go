@@ -733,6 +733,18 @@ func pruneAppState(home string) error {
 		for key, value := range strideKeys {
 			keys[key] = value
 		}
+	} else if app == "noble" {
+		nobleKeys := types.NewKVStoreKeys(
+			"authz",                  // authz.ModuleName,
+			"feegrant",               // feegrant.StoreKey,
+			"icahost",                // icahosttypes.StoreKey,
+			"tokenfactory",           // tokenfactorymoduletypes.StoreKey,
+			"packetfowardmiddleware", // packetforwardtypes.StoreKey,
+		)
+
+		for key, value := range nobleKeys {
+			keys[key] = value
+		}
 	}
 
 	// TODO: cleanup app state
