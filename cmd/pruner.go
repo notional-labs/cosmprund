@@ -745,6 +745,21 @@ func pruneAppState(home string) error {
 		for key, value := range nobleKeys {
 			keys[key] = value
 		}
+	} else if app == "quasar" {
+		quasarKeys := types.NewKVStoreKeys(
+			"feegrant",       // feegrant.StoreKey,
+			"epochs",         // epochsmoduletypes.StoreKey,
+			"qoracle",        // qoraclemoduletypes.StoreKey,
+			"qosmosisoracle", // qosmotypes.StoreKey,
+			"icacontroller",  // icacontrollertypes.StoreKey,
+			"icahost",        // icahosttypes.StoreKey,
+			"wasm",           // wasm.StoreKey,
+			"qtransfer",      // qtransfertypes.StoreKey,
+		)
+
+		for key, value := range quasarKeys {
+			keys[key] = value
+		}
 	}
 
 	// TODO: cleanup app state
