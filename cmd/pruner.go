@@ -243,15 +243,15 @@ func pruneAppState(home string) error {
 			"auction",   //auctiontypes.StoreKey,
 			"issuance",  //issuancetypes.StoreKey,
 			"bep3",      //bep3types.StoreKey,
-			//"pricefeed", //pricefeedtypes.StoreKey,
-			//"swap",      //swaptypes.StoreKey,
+			"pricefeed", //pricefeedtypes.StoreKey,
+			"swap",      //swaptypes.StoreKey,
 			"cdp",       //cdptypes.StoreKey,
 			"hard",      //hardtypes.StoreKey,
 			"committee", //committeetypes.StoreKey,
 			"incentive", //incentivetypes.StoreKey,
 			"evmutil",   //evmutiltypes.StoreKey,
 			"savings",   //savingstypes.StoreKey,
-			"bridge",    //bridgetypes.StoreKey,
+			"earn",      //earntypes.StoreKey,
 		)
 		for key, value := range kavaKeys {
 			keys[key] = value
