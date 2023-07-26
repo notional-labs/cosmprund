@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/cockroachdb/pebble"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/google/orderedcode"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,9 +19,6 @@ import (
 
 	"github.com/binaryholdings/cosmos-pruner/internal/rootmulti"
 )
-
-// to figuring out the height to prune tx_index
-var txIdxHeight int64 = 0
 
 // load db
 // load app store and prune
@@ -114,10 +112,29 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 		strKey := string(key)
 
 		if strings.HasPrefix(strKey, "tx.height") { // index by height
-			strs := strings.Split(strKey, "/")
-			intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
+			intHeight := int64(0)
 
-			if intHeight < pruneHeight {
+			if app == "sei" {
+				v, err := parseValueFromKey(key)
+				if err != nil {
+					fmt.Println("debug pruneTxIndexTxs key=", key)
+					continue
+				}
+
+				intHeight, _ = strconv.ParseInt(v, 10, 64)
+
+			} else {
+				strs := strings.Split(strKey, "/")
+
+				if len(strs) <= 2 {
+					// dump to log
+					fmt.Println("debug pruneTxIndexTxs key=", key)
+					continue
+				}
+				intHeight, _ = strconv.ParseInt(strs[2], 10, 64)
+			}
+
+			if (intHeight > 0) && (intHeight < pruneHeight) {
 				db.Delete(value)
 				db.Delete(key)
 			}
@@ -441,4 +458,19 @@ func rootify(path, root string) string {
 func int64FromBytes(bz []byte) int64 {
 	v, _ := binary.Varint(bz)
 	return v
+}
+
+func parseValueFromKey(key []byte) (string, error) {
+	var (
+		compositeKey, value string
+		height, index       int64
+	)
+	remaining, err := orderedcode.Parse(string(key), &compositeKey, &value, &height, &index)
+	if err != nil {
+		return "", err
+	}
+	if len(remaining) != 0 {
+		return "", fmt.Errorf("unexpected remainder in key: %s", remaining)
+	}
+	return value, nil
 }

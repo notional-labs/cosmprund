@@ -8,17 +8,18 @@ import (
 )
 
 var (
-	homePath   string
-	dataDir    string
-	backend    string
-	app        string
-	cosmosSdk  bool
-	tendermint bool
-	blocks     uint64
-	versions   uint64
-	tx_idx     bool
-	compact    bool
-	appName    = "cosmprund"
+	homePath    string
+	dataDir     string
+	backend     string
+	app         string
+	cosmosSdk   bool
+	tendermint  bool
+	blocks      uint64
+	versions    uint64
+	tx_idx      bool
+	txIdxHeight int64 = 0 // to figuring out the height to prune tx_index
+	compact     bool
+	appName     = "cosmprund"
 )
 
 // NewRootCmd returns the root command for relayer.
@@ -76,6 +77,9 @@ func NewRootCmd() *cobra.Command {
 
 	// --tx_index flag
 	rootCmd.PersistentFlags().BoolVar(&tx_idx, "tx_index", true, "set to false you dont want to prune tx_index.db (default true)")
+
+	// --tx_index_height flag
+	rootCmd.PersistentFlags().Int64VarP(&txIdxHeight, "tx_index_height", "h", int64(0), "to figuring out the height to prune tx_index (default 0)")
 
 	// --compact flag
 	rootCmd.PersistentFlags().BoolVar(&compact, "compact", true, "set to false you dont want to compact dbs after prunning (default true)")
