@@ -113,7 +113,18 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 
 		strKey := string(key)
 
-		if len(value) == 32 { // hash
+		if strings.HasPrefix(strKey, "block.height") {
+			intHeight, err := parseValueFromPrimaryKey(key)
+			if err != nil {
+				fmt.Println("pruneTxIndexTxs err ", err, " (parseValueFromPrimaryKey) key=", key)
+				continue
+			}
+
+			if (intHeight > 0) && (intHeight < pruneHeight) {
+				db.Delete(value)
+				db.Delete(key)
+			}
+		} else if len(value) == 32 { // hash
 			if app == "sei" {
 				intHeight, err := parseHeightFromKey(key)
 				if err != nil {
@@ -511,5 +522,23 @@ func parseHeightFromKey(key []byte) (int64, error) {
 	if len(remaining) != 0 {
 		//return 0, fmt.Errorf("unexpected remainder in key: %s", remaining)
 	}
+	return height, nil
+}
+
+func parseValueFromPrimaryKey(key []byte) (int64, error) {
+	var (
+		compositeKey string
+		height       int64
+	)
+
+	remaining, err := orderedcode.Parse(string(key), &compositeKey, &height)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse event key: %w", err)
+	}
+
+	if len(remaining) != 0 {
+		return 0, fmt.Errorf("unexpected remainder in key: %s", remaining)
+	}
+
 	return height, nil
 }
