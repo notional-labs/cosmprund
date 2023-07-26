@@ -158,9 +158,11 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 				intHeight, _ = strconv.ParseInt(strs[2], 10, 64)
 			}
 
-			if (intHeight > 0) && (intHeight < pruneHeight) {
-				db.Delete(value)
-				db.Delete(key)
+			if intHeight > 0 {
+				if intHeight < pruneHeight {
+					db.Delete(value)
+					db.Delete(key)
+				}
 			} else {
 				fmt.Println("pruneTxIndexTxs debug (unknown tx) key=", hex.EncodeToString(key), "value=", hex.EncodeToString(value))
 			}
