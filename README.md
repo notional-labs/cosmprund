@@ -16,7 +16,7 @@ cd cosmprund
 make build
 
 # run cosmprund 
-./build/cosmprund prune ~/.gaiad/data --app=sei --backend=pebbledb --blocks=362880 --versions=362880 --compact=true
+./build/cosmprund prune ~/.gaiad/data --app=cosmoshub --backend=pebbledb --blocks=362880 --versions=362880 --compact=true
 ```
 
 Flags: 
@@ -24,8 +24,8 @@ Flags:
 - `data-dir`: path to data directory if not default
 - `blocks`: amount of blocks to keep on the node (Default 10)
 - `versions`: amount of app state versions to keep on the node (Default 10)
-- `app`: deprecated! the application you want to prune, outside the sdk default modules.
-- `cosmos-sdk`: If pruning a non cosmos-sdk chain, like Nomic, you only want to use tendermint pruning or if you want to only prune tendermint block & state as this is generally large on machines(Default true)
-- `tendermint`: If the user wants to only prune application data they can disable pruning of tendermint data. (Default true)
+- `app`: deprecated! does not use for anything exccep some special chains.
+- `cosmos-sdk`: If pruning app state (Default true)
+- `tendermint`: If pruning tendermint data including blockstore and state. (Default true)
 - `tx_index`: set to false you dont want to prune tx_index.db (default true)
 - `compact`: set to false you dont want to compact dbs after prunning (default true)
