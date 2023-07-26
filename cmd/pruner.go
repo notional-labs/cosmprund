@@ -7,6 +7,7 @@ import (
 	"github.com/cockroachdb/pebble"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/google/orderedcode"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -19,6 +20,8 @@ import (
 	db "github.com/tendermint/tm-db"
 
 	"github.com/binaryholdings/cosmos-pruner/internal/rootmulti"
+
+	"github.com/gogo/protobuf/proto"
 )
 
 // load db
@@ -124,6 +127,20 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 				db.Delete(value)
 				db.Delete(key)
 			}
+		} else if strings.HasPrefix(strKey, "tx.hash") {
+			txResult := new(abci.TxResult)
+			err := proto.Unmarshal(value, txResult)
+
+			if err != nil {
+				fmt.Println("pruneTxIndexTxs err ", err, " (Unmarshal tx.hash) key=", key)
+				continue
+			}
+
+			intHeight := txResult.Height
+			if (intHeight > 0) && (intHeight < pruneHeight) {
+				db.Delete(value)
+				db.Delete(key)
+			}
 		} else if len(value) == 32 { // hash
 			if app == "sei" {
 				intHeight, err := parseHeightFromKey(key)
@@ -177,11 +194,6 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			} else {
 				fmt.Println("pruneTxIndexTxs debug (unknown tx) key=", hex.EncodeToString(key), "value=", hex.EncodeToString(value))
 			}
-			//} else if strings.HasPrefix(strKey, "tx.hash") {
-			//	// do nothing
-			//} else {
-			//	fmt.Println("pruneTxIndexTxs debug (unknown tx) key=", hex.EncodeToString(key), "value=", hex.EncodeToString(value))
-			//}
 		}
 	}
 }
@@ -537,7 +549,7 @@ func parseValueFromPrimaryKey(key []byte) (int64, error) {
 	}
 
 	if len(remaining) != 0 {
-		return 0, fmt.Errorf("unexpected remainder in key: %s", remaining)
+		//return 0, fmt.Errorf("unexpected remainder in key: %s", remaining)
 	}
 
 	return height, nil
