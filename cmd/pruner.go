@@ -75,6 +75,7 @@ func pruneTxIndex(home string) error {
 	}()
 
 	pruneHeight := txIdxHeight - int64(blocks) - 10
+	fmt.Println("pruneTxIndex pruneHeight=", pruneHeight)
 	if pruneHeight <= 0 {
 		fmt.Printf("No need to prune (pruneHeight=%d)\n", pruneHeight)
 		return nil
