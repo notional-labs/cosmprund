@@ -141,6 +141,8 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			}
 		} else {
 			if len(value) == 32 { // maybe index tx by events
+				fmt.Println("pruneTxIndexTxs debug (index tx by events) key=", key)
+
 				strs := strings.Split(strKey, "/")
 				if len(strs) == 4 { // index tx by events
 					intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
