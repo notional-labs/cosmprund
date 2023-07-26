@@ -117,7 +117,7 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			if app == "sei" {
 				intHeight, err := parseHeightFromKey(key)
 				if err != nil {
-					fmt.Println("pruneTxIndexTxs debug (parseHeightFromKey) key=", key)
+					fmt.Println("pruneTxIndexTxs err ", err, " (parseHeightFromKey) key=", key)
 					continue
 				}
 
@@ -141,7 +141,7 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			if app == "sei" {
 				v, err := parseHeightFromKey(key)
 				if err != nil {
-					fmt.Println("debug pruneTxIndexTxs key=", key)
+					fmt.Println("debug pruneTxIndexTxs key=", hex.EncodeToString(key), "value=", hex.EncodeToString(value))
 					continue
 				}
 
