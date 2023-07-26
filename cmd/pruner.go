@@ -113,18 +113,40 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 
 		strKey := string(key)
 
-		if strings.HasPrefix(strKey, "tx.height") { // index by height
+		if len(value) == 32 { // hash
+			if app == "sei" {
+				intHeight, err := parseHeightFromKey(key)
+				if err != nil {
+					fmt.Println("pruneTxIndexTxs debug (parseHeightFromKey) key=", key)
+					continue
+				}
+
+				if (intHeight > 0) && (intHeight < pruneHeight) {
+					db.Delete(value)
+					db.Delete(key)
+				}
+			} else {
+				strs := strings.Split(strKey, "/")
+				if len(strs) == 4 { // index tx by events
+					intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
+					if intHeight < pruneHeight {
+						db.Delete(key)
+					}
+				}
+			}
+		} else {
+			//if strings.HasPrefix(strKey, "tx.height") { // index by height
 			intHeight := int64(0)
 
 			if app == "sei" {
-				v, err := parseValueFromKey(key)
+				v, err := parseHeightFromKey(key)
 				if err != nil {
 					fmt.Println("debug pruneTxIndexTxs key=", key)
 					continue
 				}
 
-				intHeight, _ = strconv.ParseInt(v, 10, 64)
-
+				//intHeight, _ = strconv.ParseInt(v, 10, 64)
+				intHeight = v
 			} else {
 				strs := strings.Split(strKey, "/")
 
@@ -139,32 +161,14 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			if (intHeight > 0) && (intHeight < pruneHeight) {
 				db.Delete(value)
 				db.Delete(key)
-			}
-		} else {
-			if len(value) == 32 { // maybe index tx by events
-				if app == "sei" {
-					intHeight, err := parseHeightFromKey(key)
-					if err != nil {
-						fmt.Println("pruneTxIndexTxs debug (parseHeightFromKey) key=", key)
-						continue
-					}
-
-					if (intHeight > 0) && (intHeight < pruneHeight) {
-						db.Delete(value)
-						db.Delete(key)
-					}
-				} else {
-					strs := strings.Split(strKey, "/")
-					if len(strs) == 4 { // index tx by events
-						intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
-						if intHeight < pruneHeight {
-							db.Delete(key)
-						}
-					}
-				}
 			} else {
 				fmt.Println("pruneTxIndexTxs debug (unknown tx) key=", hex.EncodeToString(key), "value=", hex.EncodeToString(value))
 			}
+			//} else if strings.HasPrefix(strKey, "tx.hash") {
+			//	// do nothing
+			//} else {
+			//	fmt.Println("pruneTxIndexTxs debug (unknown tx) key=", hex.EncodeToString(key), "value=", hex.EncodeToString(value))
+			//}
 		}
 	}
 }
@@ -477,20 +481,20 @@ func int64FromBytes(bz []byte) int64 {
 	return v
 }
 
-func parseValueFromKey(key []byte) (string, error) {
-	var (
-		compositeKey, value string
-		height, index       int64
-	)
-	remaining, err := orderedcode.Parse(string(key), &compositeKey, &value, &height, &index)
-	if err != nil {
-		return "", err
-	}
-	if len(remaining) != 0 {
-		return "", fmt.Errorf("unexpected remainder in key: %s", remaining)
-	}
-	return value, nil
-}
+//func parseValueFromKey(key []byte) (string, error) {
+//	var (
+//		compositeKey, value string
+//		height, index       int64
+//	)
+//	remaining, err := orderedcode.Parse(string(key), &compositeKey, &value, &height, &index)
+//	if err != nil {
+//		return "", err
+//	}
+//	if len(remaining) != 0 {
+//		return "", fmt.Errorf("unexpected remainder in key: %s", remaining)
+//	}
+//	return value, nil
+//}
 
 func parseHeightFromKey(key []byte) (int64, error) {
 	var (
@@ -498,11 +502,12 @@ func parseHeightFromKey(key []byte) (int64, error) {
 		height, index       int64
 	)
 	remaining, err := orderedcode.Parse(string(key), &compositeKey, &value, &height, &index)
+	//fmt.Println("parseHeightFromKey debug compositeKey=", compositeKey, "value=", value, "height=", height, "index=", index)
 	if err != nil {
 		return 0, err
 	}
 	if len(remaining) != 0 {
-		return 0, fmt.Errorf("unexpected remainder in key: %s", remaining)
+		//return 0, fmt.Errorf("unexpected remainder in key: %s", remaining)
 	}
 	return height, nil
 }
