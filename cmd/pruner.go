@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"github.com/cockroachdb/pebble"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -141,7 +142,6 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			}
 		} else {
 			if len(value) == 32 { // maybe index tx by events
-				//fmt.Println("pruneTxIndexTxs debug (index tx by events) key=", key)
 				if app == "sei" {
 					intHeight, err := parseHeightFromKey(key)
 					if err != nil {
@@ -162,6 +162,8 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 						}
 					}
 				}
+			} else {
+				fmt.Println("pruneTxIndexTxs debug (unknown tx) key=", hex.EncodeToString(key), "value=", hex.EncodeToString(value))
 			}
 		}
 	}
