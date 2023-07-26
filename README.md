@@ -11,7 +11,7 @@ This is a fork of [cosmprund](https://github.com/binaryholdings/cosmprund) with 
 
 ```
 # clone & build cosmprund repo
-git clone https://github.com/binaryholdings/cosmprund
+git clone https://github.com/notional-labs/cosmprund
 cd cosmprund
 make build
 
