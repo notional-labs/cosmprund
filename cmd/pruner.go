@@ -150,8 +150,10 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			bat.Close()
 			bat = db.NewBatch()
 		}
-
 	}
+
+	bat.WriteSync()
+	bat.Close()
 }
 
 func pruneBlockIndex(db db.DB, pruneHeight int64) {
