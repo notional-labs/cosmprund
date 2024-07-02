@@ -63,7 +63,7 @@ func pruneCmd() *cobra.Command {
 }
 
 func pruneTxIndex(home string) error {
-	fmt.Println("pruning tx_index")
+	fmt.Println("pruning tx_index and block")
 	txIdxDB, err := openDB("tx_index", home)
 	if err != nil {
 		return err
@@ -83,8 +83,9 @@ func pruneTxIndex(home string) error {
 	}
 
 	pruneBlockIndex(txIdxDB, pruneHeight)
-	pruneTxIndexTxs(txIdxDB, pruneHeight)
+	fmt.Println("finished pruning block")
 
+	pruneTxIndexTxs(txIdxDB, pruneHeight)
 	fmt.Println("finished pruning tx_index")
 
 	if compact {
@@ -107,6 +108,10 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 
 	///////////////////////////////////////////////////
 	// delete index by hash and index by height
+
+	bat := db.NewBatch()
+	counter := 0
+
 	for ; itr.Valid(); itr.Next() {
 		key := itr.Key()
 		value := itr.Value()
@@ -118,8 +123,11 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
 
 			if intHeight < pruneHeight {
-				db.Delete(value)
-				db.Delete(key)
+				//db.Delete(value)
+				//db.Delete(key)
+				bat.Delete(value)
+				bat.Delete(key)
+				counter += 2
 			}
 		} else {
 			if len(value) == 32 { // maybe index tx by events
@@ -127,11 +135,22 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 				if len(strs) == 4 { // index tx by events
 					intHeight, _ := strconv.ParseInt(strs[2], 10, 64)
 					if intHeight < pruneHeight {
-						db.Delete(key)
+						//db.Delete(key)
+						//db.DeleteSync(key)
+						bat.Delete(key)
+						counter++
 					}
 				}
 			}
 		}
+
+		if counter >= 1000 { // 100 MB
+			bat.WriteSync()
+			counter = 0
+			bat.Close()
+			bat = db.NewBatch()
+		}
+
 	}
 }
 
@@ -155,6 +174,7 @@ func pruneBlockIndex(db db.DB, pruneHeight int64) {
 
 			if intHeight < pruneHeight {
 				db.Delete(key)
+				//db.DeleteSync(key)
 			}
 		}
 	}
