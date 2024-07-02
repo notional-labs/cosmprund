@@ -144,7 +144,7 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 			}
 		}
 
-		if counter >= 1000 { // 100 MB
+		if counter >= 1000 {
 			bat.WriteSync()
 			counter = 0
 			bat.Close()
@@ -164,6 +164,9 @@ func pruneBlockIndex(db db.DB, pruneHeight int64) {
 
 	defer itr.Close()
 
+	bat := db.NewBatch()
+	counter := 0
+
 	for ; itr.Valid(); itr.Next() {
 		key := itr.Key()
 		value := itr.Value()
@@ -175,11 +178,23 @@ func pruneBlockIndex(db db.DB, pruneHeight int64) {
 			//fmt.Printf("intHeight: %d\n", intHeight)
 
 			if intHeight < pruneHeight {
-				db.Delete(key)
+				//db.Delete(key)
 				//db.DeleteSync(key)
+				bat.Delete(key)
+				counter++
 			}
 		}
+
+		if counter >= 1000 {
+			bat.WriteSync()
+			counter = 0
+			bat.Close()
+			bat = db.NewBatch()
+		}
 	}
+
+	bat.WriteSync()
+	bat.Close()
 }
 
 func pruneAppState(home string) error {
