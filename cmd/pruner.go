@@ -63,7 +63,7 @@ func pruneCmd() *cobra.Command {
 }
 
 func pruneTxIndex(home string) error {
-	fmt.Println("pruning tx_index and block")
+	fmt.Println("pruning tx_index and block index")
 	txIdxDB, err := openDB("tx_index", home)
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func pruneTxIndex(home string) error {
 	}
 
 	pruneBlockIndex(txIdxDB, pruneHeight)
-	fmt.Println("finished pruning block")
+	fmt.Println("finished pruning block index")
 
 	pruneTxIndexTxs(txIdxDB, pruneHeight)
 	fmt.Println("finished pruning tx_index")
@@ -145,6 +145,7 @@ func pruneTxIndexTxs(db db.DB, pruneHeight int64) {
 		}
 
 		if counter >= 1000 {
+			fmt.Println("write batch", counter)
 			bat.WriteSync()
 			counter = 0
 			bat.Close()
@@ -186,6 +187,7 @@ func pruneBlockIndex(db db.DB, pruneHeight int64) {
 		}
 
 		if counter >= 1000 {
+			fmt.Println("write batch", counter)
 			bat.WriteSync()
 			counter = 0
 			bat.Close()
