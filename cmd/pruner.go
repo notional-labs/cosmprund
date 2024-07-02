@@ -340,6 +340,7 @@ func openDB(dbname string, home string) (db.DB, error) {
 		db1 = lvlDB
 	} else if dbType == db.PebbleDBBackend {
 		opts := &pebble.Options{
+			MaxOpenFiles: 100,
 			//DisableAutomaticCompactions: true, // freeze when pruning!
 		}
 		opts.EnsureDefaults()
