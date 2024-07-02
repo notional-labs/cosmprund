@@ -182,6 +182,11 @@ func pruneAppState(home string) error {
 	//	evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 	//)
 
+	if app == "osmosis" {
+		fmt.Println("not support osmosis AppState, exit.")
+		return nil
+	}
+
 	keys := getStoreKeys(appDB)
 
 	// TODO: cleanup app state
