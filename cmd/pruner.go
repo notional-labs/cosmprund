@@ -3,11 +3,11 @@ package cmd
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/cockroachdb/pebble"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
@@ -20,7 +20,9 @@ import (
 )
 
 // to figuring out the height to prune tx_index
-var txIdxHeight int64 = 0
+var (
+	txIdxHeight int64 = 0
+)
 
 // load db
 // load app store and prune
@@ -377,20 +379,7 @@ func openDB(dbname string, home string) (db.DB, error) {
 		}
 
 		db1 = lvlDB
-	} else if dbType == db.PebbleDBBackend {
-		opts := &pebble.Options{
-			MaxOpenFiles: 100,
-			//DisableAutomaticCompactions: true, // freeze when pruning!
-		}
-		opts.EnsureDefaults()
-
-		ppDB, err := db.NewPebbleDBWithOpts(dbname, dbDir, opts)
-		if err != nil {
-			return nil, err
-		}
-
-		db1 = ppDB
-	} else {
+	}  else {
 		var err error
 		db1, err = db.NewDB(dbname, dbType, dbDir)
 		if err != nil {
@@ -410,30 +399,7 @@ func compactDB(vdb db.DB) error {
 		if err := vdbLevel.ForceCompact(nil, nil); err != nil {
 			return err
 		}
-	} else if dbType == db.PebbleDBBackend {
-		vdbPebble := vdb.(*db.PebbleDB).DB()
-
-		iter := vdbPebble.NewIter(nil)
-		//defer iter.Close()
-
-		var start, end []byte
-
-		if iter.First() {
-			start = cp(iter.Key())
-		}
-
-		if iter.Last() {
-			end = cp(iter.Key())
-		}
-
-		// close iter before compacting
-		iter.Close()
-
-		err := vdbPebble.Compact(start, end, false)
-		if err != nil {
-			return err
-		}
-	}
+	} 
 
 	return nil
 }
